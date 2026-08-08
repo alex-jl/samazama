@@ -36,6 +36,8 @@ import com.example.samazama.ui.theme.SamazamaTheme
 import androidx.compose.material.icons.Icons.Filled
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.res.stringResource
 
 class MainActivity : ComponentActivity() {
@@ -75,9 +77,20 @@ private fun Greetings(
     }
 }
 
-
 @Composable
 private fun Greeting(name: String, modifier: Modifier = Modifier) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+    ) {
+        GreetingContent(name)
+    }
+}
+
+@Composable
+private fun GreetingContent(name: String, modifier: Modifier = Modifier) {
     Surface(
         color = MaterialTheme.colorScheme.primary,
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
