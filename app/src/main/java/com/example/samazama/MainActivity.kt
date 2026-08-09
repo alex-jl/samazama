@@ -36,7 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-//import coil3.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.example.samazama.ui.theme.SamazamaTheme
 
 class MainActivity : ComponentActivity() {
@@ -112,10 +112,11 @@ private fun BookCardContent(book: Book, modifier: Modifier = Modifier) {
     ) {
         Row(modifier = Modifier.padding(24.dp)) {
             Column {
-                /*AsyncImage(
+                AsyncImage(
                     model = book.imageUrl,
                     contentDescription = "Cover image for " + book.title,
-                )*/
+
+                )
             }
             Column(
                 modifier = Modifier
