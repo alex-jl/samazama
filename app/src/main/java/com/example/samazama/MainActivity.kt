@@ -90,25 +90,25 @@ private fun BookList(
                 .padding(innerPadding)
                 .padding(top = 4.dp),
         ) {
-            items(items = books) { book -> BookCard(title = book.title) }
+            items(items = books) { book -> BookCard(book = book) }
         }
     }
 }
 
 @Composable
-private fun BookCard(title: String, modifier: Modifier = Modifier) {
+private fun BookCard(book: Book, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
-        BookCardContent(title)
+        BookCardContent(book)
     }
 }
 
 @Composable
-private fun BookCardContent(name: String, modifier: Modifier = Modifier) {
+private fun BookCardContent(book: Book, modifier: Modifier = Modifier) {
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer,
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
@@ -126,15 +126,15 @@ private fun BookCardContent(name: String, modifier: Modifier = Modifier) {
                         )
                     )
             ) {
-                Text(text = "Hello, ")
+                Text(text = book.author)
                 Text(
-                    text = name, style = MaterialTheme.typography.headlineMedium.copy(
+                    text = book.title, style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.ExtraBold
                     )
                 )
                 if (expanded) {
                     Text(
-                        text = ("placeholder text goes here! ").repeat(8),
+                        text = "/books/" + book.id,
                     )
                 }
             }
