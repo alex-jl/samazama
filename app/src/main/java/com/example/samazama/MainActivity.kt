@@ -14,9 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons.Filled
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -113,8 +112,6 @@ private fun BookCardContent(book: Book, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.primaryContainer,
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
-        var expanded by rememberSaveable { mutableStateOf(false) }
-
         Row(modifier = Modifier.padding(24.dp)) {
             Column(
                 modifier = Modifier
@@ -132,22 +129,13 @@ private fun BookCardContent(book: Book, modifier: Modifier = Modifier) {
                         fontWeight = FontWeight.ExtraBold
                     )
                 )
-                if (expanded) {
-                    Text(
-                        text = "/books/" + book.id,
-                    )
-                }
             }
             IconButton(
-                onClick = { expanded = !expanded }
+                onClick = { /* todo */ }
             ) {
                 Icon(
-                    imageVector = if (expanded) Filled.ExpandLess else Filled.ExpandMore,
-                    contentDescription = if (expanded) {
-                        stringResource(R.string.show_less)
-                    } else {
-                        stringResource(R.string.show_more)
-                    }
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = stringResource(R.string.view_book)
                 )
             }
         }

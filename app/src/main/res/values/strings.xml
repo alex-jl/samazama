@@ -2,5 +2,6 @@
     <string name="app_name">samazama</string>
     <string name="show_less">Show less</string>
     <string name="show_more">Show more</string>
+    <string name="view_book">View book</string>
     <string name="rankings">Rankings</string>
 </resources>
