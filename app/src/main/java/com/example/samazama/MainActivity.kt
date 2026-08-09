@@ -61,17 +61,16 @@ fun MyApp(modifier: Modifier = Modifier, names: List<String> = listOf("World", "
         if (shouldShowOnboarding) {
             OnboardingScreen(onContinueClicked = { shouldShowOnboarding = false })
         } else {
-            Greetings()
+            BookList()
         }
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Greetings(
+private fun BookList(
     modifier: Modifier = Modifier,
-    names: List<String> = List(1000) { "$it" }
+    books: List<Book> = sampleBooks
 ) {
     Scaffold(
         topBar = {
@@ -91,25 +90,25 @@ private fun Greetings(
                 .padding(innerPadding)
                 .padding(top = 4.dp),
         ) {
-            items(items = names) { name -> Greeting(name = name) }
+            items(items = books) { book -> BookCard(title = book.title) }
         }
     }
 }
 
 @Composable
-private fun Greeting(name: String, modifier: Modifier = Modifier) {
+private fun BookCard(title: String, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
-        GreetingContent(name)
+        BookCardContent(title)
     }
 }
 
 @Composable
-private fun GreetingContent(name: String, modifier: Modifier = Modifier) {
+private fun BookCardContent(name: String, modifier: Modifier = Modifier) {
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer,
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
@@ -197,11 +196,11 @@ fun OnboardingPreview() {
     showBackground = true,
     widthDp = 320,
     uiMode = UI_MODE_NIGHT_YES,
-    name = "GreetingPreviewDark"
+    name = "BookListPreviewDark"
 )
 @Composable
-fun GreetingPreview() {
+fun BookListPreview() {
     SamazamaTheme {
-        Greetings()
+        BookList()
     }
 }
