@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -92,35 +92,50 @@ private fun BookList(
                 .padding(innerPadding)
                 .padding(top = 4.dp),
         ) {
-            items(items = books) { book -> BookCard(book = book) }
+            itemsIndexed(items = books) { i, book -> BookCard(book = book, displayIndex = i + 1) }
         }
     }
 }
 
 @Composable
-private fun BookCard(book: Book, modifier: Modifier = Modifier) {
+private fun BookCard(book: Book, displayIndex: Int?, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
-        BookCardContent(book)
+        BookCardContent(book, displayIndex)
     }
 }
 
 @Composable
-private fun BookCardContent(book: Book, modifier: Modifier = Modifier) {
+private fun BookCardContent(book: Book, displayIndex: Int?, modifier: Modifier = Modifier) {
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer,
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
-        Row(modifier = Modifier.padding(12.dp)) {
+        Row(
+            modifier = Modifier.padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (displayIndex != null) {
+                Column {
+                    Text(
+                        text = displayIndex.toString(),
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                        ),
+                    )
+                }
+            }
             Column {
                 AsyncImage(
                     model = book.imageUrl,
                     contentDescription = "Cover image for " + book.title,
-                    modifier = Modifier.height(100.dp).padding(4.dp)
+                    modifier = Modifier
+                        .height(100.dp)
+                        .padding(4.dp)
                 )
             }
             Column(
@@ -129,8 +144,8 @@ private fun BookCardContent(book: Book, modifier: Modifier = Modifier) {
             ) {
                 Text(
                     text = book.title,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.ExtraBold
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
                     ),
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1
@@ -190,7 +205,12 @@ fun OnboardingPreview() {
 fun BookListPreview() {
     val context = LocalContext.current
     val previewHandler = AsyncImagePreviewHandler {
-        checkNotNull(ContextCompat.getDrawable(context, R.drawable.example_cover)).asImage(shareable = true)
+        checkNotNull(
+            ContextCompat.getDrawable(
+                context,
+                R.drawable.example_cover
+            )
+        ).asImage(shareable = true)
     }
     CompositionLocalProvider(LocalAsyncImagePreviewHandler provides previewHandler) {
         SamazamaTheme {
