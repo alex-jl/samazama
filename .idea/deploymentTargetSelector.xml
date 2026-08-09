@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="Samazama.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-06-19T21:46:50.910608833Z">
+        <DropdownSelection timestamp="2026-08-09T19:43:25.193235173Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="Default" identifier="serial=192.168.240.112:5555;connection=9dec1502" />
+              <DeviceId pluginId="Default" identifier="serial=192.168.240.112:5555;connection=7982482e" />
             </handle>
           </Target>
         </DropdownSelection>
