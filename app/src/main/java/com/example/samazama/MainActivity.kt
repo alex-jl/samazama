@@ -8,35 +8,40 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import coil3.annotation.ExperimentalCoilApi
+import coil3.asImage
 import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePreviewHandler
+import coil3.compose.LocalAsyncImagePreviewHandler
 import com.example.samazama.ui.theme.SamazamaTheme
 
 class MainActivity : ComponentActivity() {
@@ -110,32 +115,27 @@ private fun BookCardContent(book: Book, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.primaryContainer,
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
-        Row(modifier = Modifier.padding(24.dp)) {
+        Row(modifier = Modifier.padding(12.dp)) {
             Column {
                 AsyncImage(
                     model = book.imageUrl,
                     contentDescription = "Cover image for " + book.title,
-
+                    modifier = Modifier.height(100.dp).padding(4.dp)
                 )
             }
             Column(
                 modifier = Modifier
                     .weight(1f)
             ) {
-                Text(text = book.author)
                 Text(
-                    text = book.title, style = MaterialTheme.typography.headlineMedium.copy(
+                    text = book.title,
+                    style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.ExtraBold
-                    )
+                    ),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1
                 )
-            }
-            IconButton(
-                onClick = { /* todo */ }
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = stringResource(R.string.view_book)
-                )
+                Text(text = book.author)
             }
         }
     }
@@ -178,6 +178,7 @@ fun OnboardingPreview() {
     }
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Preview(showBackground = true, widthDp = 320)
 @Preview(
     showBackground = true,
@@ -187,7 +188,13 @@ fun OnboardingPreview() {
 )
 @Composable
 fun BookListPreview() {
-    SamazamaTheme {
-        BookList()
+    val context = LocalContext.current
+    val previewHandler = AsyncImagePreviewHandler {
+        checkNotNull(ContextCompat.getDrawable(context, R.drawable.example_cover)).asImage(shareable = true)
+    }
+    CompositionLocalProvider(LocalAsyncImagePreviewHandler provides previewHandler) {
+        SamazamaTheme {
+            BookList()
+        }
     }
 }
