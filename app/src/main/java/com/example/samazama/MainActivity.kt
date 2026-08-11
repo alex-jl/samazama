@@ -4,16 +4,19 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -148,10 +153,32 @@ private fun BookList(
 
 @Composable
 private fun BookCard(book: Book, displayIndex: Int?, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+    Row(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        BookCardContent(book, displayIndex)
+        if (displayIndex != null) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = displayIndex.toString(),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                    ),
+                )
+            }
+        }
+        OutlinedCard(
+            modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+            elevation = CardDefaults.elevatedCardElevation(4.dp)
+        ) {
+            BookCardContent(book, displayIndex)
+        }
     }
 }
 
@@ -161,17 +188,6 @@ private fun BookCardContent(book: Book, displayIndex: Int?, modifier: Modifier =
         modifier = modifier.padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (displayIndex != null) {
-            Column {
-                Text(
-                    text = displayIndex.toString(),
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                    ),
-                    modifier = Modifier.padding(horizontal = 10.dp)
-                )
-            }
-        }
         Column {
             AsyncImage(
                 model = book.imageUrl,
