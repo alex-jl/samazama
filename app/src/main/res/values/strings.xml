@@ -4,4 +4,9 @@
     <string name="show_more">Show more</string>
     <string name="view_book">View book</string>
     <string name="rankings">Rankings</string>
+    <string name="bunko">Bunko</string>
+    <string name="menu">Menu</string>
+    <string name="home">Home</string>
+    <string name="search">Search</string>
+    <string name="settings">Settings</string>
 </resources>

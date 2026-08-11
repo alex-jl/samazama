@@ -12,18 +12,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -48,6 +49,7 @@ import coil3.compose.LocalAsyncImagePreviewHandler
 import com.example.samazama.data.Book
 import com.example.samazama.data.sampleBooks
 import com.example.samazama.icon.home
+import com.example.samazama.icon.menu
 import com.example.samazama.icon.search
 import com.example.samazama.icon.settings
 import com.example.samazama.ui.theme.SamazamaTheme
@@ -84,28 +86,52 @@ private fun BookList(
 ) {
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    Text(stringResource(R.string.rankings))
+                    Column {
+                        Text(text = stringResource(R.string.rankings))
+                        Text(
+                            text = stringResource(R.string.bunko),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                    }
                 },
-            )
+                navigationIcon = {
+                    IconButton(onClick = { 0 }) {
+                        Icon(menu, stringResource(R.string.menu))
+                    }
+                })
         },
         bottomBar = {
-            BottomAppBar(
-            ) {
-                IconButton(onClick = { 0 }) {
-                    Icon(home, "")
-                }
-                IconButton(onClick = { 0 }) {
-                    Icon(search, "")
-                }
-                IconButton(onClick = { 0 }) {
-                    Icon(settings, "")
-                }
+            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { 0 },
+                    icon = {
+                        Icon(home, stringResource(R.string.home))
+                    },
+                    label = { Text(stringResource(R.string.home)) }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { 0 },
+                    icon = {
+                        Icon(search, stringResource(R.string.search))
+                    },
+                    label = { Text(stringResource(R.string.search)) }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { 0 },
+                    icon = {
+                        Icon(settings, stringResource(R.string.settings))
+                    },
+                    label = { Text(stringResource(R.string.settings)) }
+                )
             }
         }
     ) { innerPadding ->
@@ -122,9 +148,6 @@ private fun BookList(
 @Composable
 private fun BookCard(book: Book, displayIndex: Int?, modifier: Modifier = Modifier) {
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
         modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
     ) {
         BookCardContent(book, displayIndex)
@@ -133,47 +156,42 @@ private fun BookCard(book: Book, displayIndex: Int?, modifier: Modifier = Modifi
 
 @Composable
 private fun BookCardContent(book: Book, displayIndex: Int?, modifier: Modifier = Modifier) {
-    Surface(
-        color = MaterialTheme.colorScheme.primaryContainer,
-        modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+    Row(
+        modifier = modifier.padding(4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.padding(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (displayIndex != null) {
-                Column {
-                    Text(
-                        text = displayIndex.toString(),
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            fontWeight = FontWeight.ExtraBold,
-                        ),
-                    )
-                }
-            }
+        if (displayIndex != null) {
             Column {
-                AsyncImage(
-                    model = book.imageUrl,
-                    contentDescription = "Cover image for " + book.title,
-                    modifier = Modifier
-                        .height(100.dp)
-                        .padding(4.dp)
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-            ) {
                 Text(
-                    text = book.title,
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold,
+                    text = displayIndex.toString(),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.ExtraBold,
                     ),
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1
                 )
-                Text(text = book.author)
             }
+        }
+        Column {
+            AsyncImage(
+                model = book.imageUrl,
+                contentDescription = "Cover image for " + book.title,
+                modifier = Modifier
+                    .height(100.dp)
+                    .padding(4.dp)
+            )
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+        ) {
+            Text(
+                text = book.title,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                ),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
+            Text(text = book.author)
         }
     }
 }
