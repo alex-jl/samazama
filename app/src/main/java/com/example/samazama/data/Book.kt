@@ -1,4 +1,4 @@
-package com.example.samazama
+package com.example.samazama.data
 
 data class Book(val id: Int, val title: String, val author: String, val imageUrl: String)
 

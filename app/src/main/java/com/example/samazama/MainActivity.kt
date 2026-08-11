@@ -12,11 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -42,6 +45,11 @@ import coil3.asImage
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePreviewHandler
 import coil3.compose.LocalAsyncImagePreviewHandler
+import com.example.samazama.data.Book
+import com.example.samazama.data.sampleBooks
+import com.example.samazama.icon.home
+import com.example.samazama.icon.search
+import com.example.samazama.icon.settings
 import com.example.samazama.ui.theme.SamazamaTheme
 
 class MainActivity : ComponentActivity() {
@@ -85,6 +93,20 @@ private fun BookList(
                     Text(stringResource(R.string.rankings))
                 },
             )
+        },
+        bottomBar = {
+            BottomAppBar(
+            ) {
+                IconButton(onClick = { 0 }) {
+                    Icon(home, "")
+                }
+                IconButton(onClick = { 0 }) {
+                    Icon(search, "")
+                }
+                IconButton(onClick = { 0 }) {
+                    Icon(settings, "")
+                }
+            }
         }
     ) { innerPadding ->
         LazyColumn(
