@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -167,6 +168,7 @@ private fun BookCardContent(book: Book, displayIndex: Int?, modifier: Modifier =
                     style = MaterialTheme.typography.headlineLarge.copy(
                         fontWeight = FontWeight.ExtraBold,
                     ),
+                    modifier = Modifier.padding(horizontal = 10.dp)
                 )
             }
         }
@@ -176,7 +178,7 @@ private fun BookCardContent(book: Book, displayIndex: Int?, modifier: Modifier =
                 contentDescription = "Cover image for " + book.title,
                 modifier = Modifier
                     .height(100.dp)
-                    .padding(4.dp)
+                    .padding(vertical = 4.dp, horizontal = 10.dp)
             )
         }
         Column(
@@ -185,7 +187,7 @@ private fun BookCardContent(book: Book, displayIndex: Int?, modifier: Modifier =
         ) {
             Text(
                 text = book.title,
-                style = MaterialTheme.typography.headlineSmall.copy(
+                style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                 ),
                 overflow = TextOverflow.Ellipsis,
