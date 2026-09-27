@@ -202,7 +202,7 @@ private fun BookCardContent(book: Book, displayIndex: Int?, modifier: Modifier =
                 .weight(1f)
         ) {
             Text(
-                text = book.title,
+                text = book.displayTitle,
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                 ),

@@ -1,0 +1,60 @@
+package com.example.samazama.api
+
+import com.example.samazama.data.Book
+
+enum class BookFormat(internal val urlSegment: String) {
+    BUNKO("bunko"),
+    TANKOUBON("tankoubon"),
+    COMIC("comic"),
+    LIGHT_NOVEL("light_novel"),
+    OTHERS("others"),
+}
+
+enum class RankingPeriod(internal val urlSegment: String) {
+    DAY("day"),
+    WEEK("week"),
+    MONTH("month"),
+}
+
+fun readBookRankingUrl(format: BookFormat, period: RankingPeriod): String =
+    "$BOOKMETER_BASE_URL/rankings/latest/read_book/${format.urlSegment}/${period.urlSegment}"
+
+suspend fun fetchReadBookRankings(
+    format: BookFormat = BookFormat.BUNKO,
+    period: RankingPeriod = RankingPeriod.MONTH
+): List<Book> = parseRankingBooks(fetchBookmeterPage(readBookRankingUrl(format, period)))
+
+fun parseRankingBooks(html: String): List<Book> =
+    html.split(BOOK_ITEM_START).drop(1).mapNotNull(::parseBook)
+
+private const val BOOK_ITEM_START = "<li class=\"list__book\">"
+
+private val BOOK_ID = Regex("/books/(\\d+)")
+private val COVER_IMAGE = Regex("<img[^>]*\\ssrc=\"([^\"]*)\"")
+private val TITLE = Regex("class=\"detail__title\">\\s*<a[^>]*>(.*?)</a>", RegexOption.DOT_MATCHES_ALL)
+private val AUTHOR_LIST = Regex("class=\"detail__authors\">(.*?)</ul>", RegexOption.DOT_MATCHES_ALL)
+private val AUTHOR = Regex("<a[^>]*>(.*?)</a>", RegexOption.DOT_MATCHES_ALL)
+
+/** Suffixes such as the " (新潮文庫 お 37-66)" of "幽冥の岸　十二国記 (新潮文庫 お 37-66)". */
+private val IMPRINT_SUFFIX = Regex("\\s*\\([^()]*\\)\\s*$")
+
+private fun parseBook(item: String): Book? {
+    val id = BOOK_ID.find(item)?.groupValues?.get(1)?.toIntOrNull() ?: return null
+    val title = TITLE.find(item)?.groupValues?.get(1)?.let { unescapeHtml(it).trim() } ?: return null
+    val imageUrl = COVER_IMAGE.find(item)?.groupValues?.get(1) ?: return null
+    return Book(
+        id = id,
+        title = title,
+        author = parseAuthors(item),
+        imageUrl = unescapeHtml(imageUrl),
+        displayTitle = title.replace(IMPRINT_SUFFIX, "")
+    )
+}
+
+private fun parseAuthors(item: String): String {
+    val authorList = AUTHOR_LIST.find(item)?.groupValues?.get(1) ?: return ""
+    return AUTHOR.findAll(authorList)
+        .map { unescapeHtml(it.groupValues[1]).trim() }
+        .filter { it.isNotEmpty() }
+        .joinToString(",")
+}
