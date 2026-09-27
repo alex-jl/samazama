@@ -2,6 +2,11 @@ package com.example.samazama.api
 
 import com.example.samazama.data.Book
 
+enum class RankingKind(internal val urlSegment: String) {
+    READ_BOOK("read_book"),
+    WISH_BOOK("wish_book"),
+}
+
 enum class BookFormat(internal val urlSegment: String) {
     BUNKO("bunko"),
     TANKOUBON("tankoubon"),
@@ -16,13 +21,14 @@ enum class RankingPeriod(internal val urlSegment: String) {
     MONTH("month"),
 }
 
-fun readBookRankingUrl(format: BookFormat, period: RankingPeriod): String =
-    "$BOOKMETER_BASE_URL/rankings/latest/read_book/${format.urlSegment}/${period.urlSegment}"
+fun rankingUrl(kind: RankingKind, format: BookFormat, period: RankingPeriod): String =
+    "$BOOKMETER_BASE_URL/rankings/latest/${kind.urlSegment}/${format.urlSegment}/${period.urlSegment}"
 
-suspend fun fetchReadBookRankings(
+suspend fun fetchRankings(
+    kind: RankingKind = RankingKind.READ_BOOK,
     format: BookFormat = BookFormat.BUNKO,
     period: RankingPeriod = RankingPeriod.MONTH
-): List<Book> = parseRankingBooks(fetchBookmeterPage(readBookRankingUrl(format, period)))
+): List<Book> = parseRankingBooks(fetchBookmeterPage(rankingUrl(kind, format, period)))
 
 fun parseRankingBooks(html: String): List<Book> =
     html.split(BOOK_ITEM_START).drop(1).mapNotNull(::parseBook)

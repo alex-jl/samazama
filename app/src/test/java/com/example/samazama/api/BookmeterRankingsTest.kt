@@ -59,26 +59,30 @@ class BookmeterRankingsTest {
     }
 
     @Test
-    fun `builds the ranking URL from the format and period`() {
+    fun `builds the ranking URL from the kind, format and period`() {
         assertEquals(
             "https://bookmeter.com/rankings/latest/read_book/bunko/month",
-            readBookRankingUrl(BookFormat.BUNKO, RankingPeriod.MONTH)
+            rankingUrl(RankingKind.READ_BOOK, BookFormat.BUNKO, RankingPeriod.MONTH)
+        )
+        assertEquals(
+            "https://bookmeter.com/rankings/latest/wish_book/bunko/month",
+            rankingUrl(RankingKind.WISH_BOOK, BookFormat.BUNKO, RankingPeriod.MONTH)
         )
         assertEquals(
             "https://bookmeter.com/rankings/latest/read_book/light_novel/week",
-            readBookRankingUrl(BookFormat.LIGHT_NOVEL, RankingPeriod.WEEK)
+            rankingUrl(RankingKind.READ_BOOK, BookFormat.LIGHT_NOVEL, RankingPeriod.WEEK)
         )
         assertEquals(
             "https://bookmeter.com/rankings/latest/read_book/comic/day",
-            readBookRankingUrl(BookFormat.COMIC, RankingPeriod.DAY)
+            rankingUrl(RankingKind.READ_BOOK, BookFormat.COMIC, RankingPeriod.DAY)
         )
         assertEquals(
             "https://bookmeter.com/rankings/latest/read_book/tankoubon/month",
-            readBookRankingUrl(BookFormat.TANKOUBON, RankingPeriod.MONTH)
+            rankingUrl(RankingKind.READ_BOOK, BookFormat.TANKOUBON, RankingPeriod.MONTH)
         )
         assertEquals(
             "https://bookmeter.com/rankings/latest/read_book/others/month",
-            readBookRankingUrl(BookFormat.OTHERS, RankingPeriod.MONTH)
+            rankingUrl(RankingKind.READ_BOOK, BookFormat.OTHERS, RankingPeriod.MONTH)
         )
     }
 
