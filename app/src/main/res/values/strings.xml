@@ -3,6 +3,8 @@
     <string name="show_less">Show less</string>
     <string name="show_more">Show more</string>
     <string name="view_book">View book</string>
+    <string name="home_title">Samazama</string>
+    <string name="discover">Discover</string>
     <string name="rankings">Rankings</string>
     <string name="bunko">Bunko</string>
     <string name="tankoubon">Tankoubon</string>
@@ -13,6 +15,7 @@
     <string name="period_week">Weekly</string>
     <string name="period_month">Monthly</string>
     <string name="menu">Menu</string>
+    <string name="back">Back</string>
     <string name="home">Home</string>
     <string name="search">Search</string>
     <string name="settings">Settings</string>

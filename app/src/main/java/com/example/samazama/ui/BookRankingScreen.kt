@@ -16,18 +16,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -47,10 +38,6 @@ import com.example.samazama.api.RankingPeriod
 import com.example.samazama.api.fetchRankings
 import com.example.samazama.data.Book
 import com.example.samazama.data.sampleBooks
-import com.example.samazama.icon.home
-import com.example.samazama.icon.menu
-import com.example.samazama.icon.search
-import com.example.samazama.icon.settings
 import kotlinx.coroutines.CancellationException
 
 @Composable
@@ -111,7 +98,6 @@ private fun ErrorScreen(modifier: Modifier = Modifier, onRetry: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BookRankingContent(
     format: BookFormat,
@@ -122,64 +108,19 @@ private fun BookRankingContent(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = { Text(text = stringResource(R.string.rankings)) },
-                navigationIcon = {
-                    IconButton(onClick = { 0 }) {
-                        Icon(menu, stringResource(R.string.menu))
-                    }
-                })
-        },
-        bottomBar = {
-            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { 0 },
-                    icon = {
-                        Icon(home, stringResource(R.string.home))
-                    },
-                    label = { Text(stringResource(R.string.home)) }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { 0 },
-                    icon = {
-                        Icon(search, stringResource(R.string.search))
-                    },
-                    label = { Text(stringResource(R.string.search)) }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { 0 },
-                    icon = {
-                        Icon(settings, stringResource(R.string.settings))
-                    },
-                    label = { Text(stringResource(R.string.settings)) }
-                )
-            }
-        }
-    ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
-            RankingFilters(
-                format = format,
-                period = period,
-                onFormatChange = onFormatChange,
-                onPeriodChange = onPeriodChange
+    Column(modifier = modifier.fillMaxSize()) {
+        RankingFilters(
+            format = format,
+            period = period,
+            onFormatChange = onFormatChange,
+            onPeriodChange = onPeriodChange
+        )
+        when (rankings) {
+            null -> LoadingScreen()
+            else -> rankings.fold(
+                onSuccess = { books -> BookList(books = books, numbered = true) },
+                onFailure = { ErrorScreen(onRetry = onRetry) }
             )
-            when (rankings) {
-                null -> LoadingScreen()
-                else -> rankings.fold(
-                    onSuccess = { books -> BookList(books = books, numbered = true) },
-                    onFailure = { ErrorScreen(onRetry = onRetry) }
-                )
-            }
         }
     }
 }
