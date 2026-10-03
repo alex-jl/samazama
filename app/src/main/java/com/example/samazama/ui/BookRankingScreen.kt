@@ -17,7 +17,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -150,7 +152,12 @@ private fun <T> DropdownChip(
             selected = false,
             onClick = { expanded = true },
             label = { Text(label(selected)) },
-            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) }
+            trailingIcon = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+            border = FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = false,
+                borderColor = MaterialTheme.colorScheme.outline
+            )
         )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { option ->
