@@ -3,7 +3,6 @@
     <string name="show_less">Show less</string>
     <string name="show_more">Show more</string>
     <string name="view_book">View book</string>
-    <string name="home_title">Samazama</string>
     <string name="discover">Discover</string>
     <string name="rankings">Rankings</string>
     <string name="bunko">Bunko</string>
@@ -23,7 +22,8 @@
     <string name="dark_mode_system">System default</string>
     <string name="dark_mode_off">Off</string>
     <string name="dark_mode_on">On</string>
-    <string name="coming_soon">Coming soon</string>
+    <string name="search_hint">Search books</string>
+    <string name="clear">Clear</string>
     <string name="loading_rankings">Loading rankings...</string>
     <string name="failed_to_load_rankings">Unable to load the rankings.</string>
     <string name="retry">Retry</string>

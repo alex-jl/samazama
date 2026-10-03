@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 }
 
 private enum class Screen(@StringRes val titleRes: Int, val tab: NavTab?) {
-    HOME(R.string.home_title, NavTab.HOME),
+    HOME(R.string.home, NavTab.HOME),
     RANKINGS(R.string.rankings, null),
     SEARCH(R.string.search, NavTab.SEARCH),
     SETTINGS(R.string.settings, NavTab.SETTINGS),
@@ -81,7 +81,7 @@ fun MyApp(
         topBar = {
             AppTopBar(
                 title = stringResource(screen.titleRes),
-                showBackButton = screen.tab == null,
+                showBackButton = screen != Screen.HOME,
                 onBackClick = goHome
             )
         },
@@ -103,7 +103,10 @@ fun MyApp(
             modifier = Modifier.padding(innerPadding)
         ) { target ->
             when (target) {
-                Screen.HOME -> HomeScreen(onRankingsClick = { screen = Screen.RANKINGS })
+                Screen.HOME -> HomeScreen(
+                    onRankingsClick = { screen = Screen.RANKINGS },
+                    onSearchClick = { screen = Screen.SEARCH }
+                )
                 Screen.RANKINGS -> BookRankingScreen()
                 Screen.SEARCH -> SearchScreen()
                 Screen.SETTINGS -> SettingsScreen(themeMode, onThemeModeChange)

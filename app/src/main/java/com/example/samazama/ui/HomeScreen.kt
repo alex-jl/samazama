@@ -22,7 +22,11 @@ import com.example.samazama.icon.chevron_right
 import com.example.samazama.ui.theme.SamazamaTheme
 
 @Composable
-fun HomeScreen(onRankingsClick: () -> Unit, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    onRankingsClick: () -> Unit,
+    onSearchClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -30,6 +34,7 @@ fun HomeScreen(onRankingsClick: () -> Unit, modifier: Modifier = Modifier) {
     ) {
         SectionHeader(stringResource(R.string.discover))
         SectionLink(stringResource(R.string.rankings), onClick = onRankingsClick)
+        SectionLink(stringResource(R.string.search), onClick = onSearchClick)
     }
 }
 
@@ -57,6 +62,6 @@ private fun SectionLink(label: String, onClick: () -> Unit, modifier: Modifier =
 @Composable
 private fun HomeScreenPreview() {
     SamazamaTheme {
-        HomeScreen(onRankingsClick = {})
+        HomeScreen(onRankingsClick = {}, onSearchClick = {})
     }
 }
