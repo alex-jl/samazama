@@ -5,6 +5,13 @@
     <string name="view_book">View book</string>
     <string name="rankings">Rankings</string>
     <string name="bunko">Bunko</string>
+    <string name="tankoubon">Tankoubon</string>
+    <string name="comic">Comic</string>
+    <string name="light_novel">Light novel</string>
+    <string name="other">Other</string>
+    <string name="period_day">Daily</string>
+    <string name="period_week">Weekly</string>
+    <string name="period_month">Monthly</string>
     <string name="menu">Menu</string>
     <string name="home">Home</string>
     <string name="search">Search</string>
