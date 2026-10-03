@@ -39,6 +39,8 @@ private val BOOK_ID = Regex("/books/(\\d+)")
 private val COVER_IMAGE = Regex("<img[^>]*\\ssrc=\"([^\"]*)\"")
 private val TITLE = Regex("class=\"detail__title\">\\s*<a[^>]*>(.*?)</a>", RegexOption.DOT_MATCHES_ALL)
 private val AUTHOR_LIST = Regex("class=\"detail__authors\">(.*?)</ul>", RegexOption.DOT_MATCHES_ALL)
+private val REGISTRATION_COUNT =
+    Regex("class=\"options__title\">登録</dt>\\s*<dd[^>]*>\\s*([\\d,]+)")
 private val AUTHOR = Regex("<a[^>]*>(.*?)</a>", RegexOption.DOT_MATCHES_ALL)
 
 private fun parseBook(item: String): Book? {
@@ -49,7 +51,9 @@ private fun parseBook(item: String): Book? {
         id = id,
         title = title,
         author = parseAuthors(item),
-        imageUrl = unescapeHtml(imageUrl)
+        imageUrl = unescapeHtml(imageUrl),
+        registrationCount = REGISTRATION_COUNT.find(item)?.groupValues?.get(1)
+            ?.replace(",", "")?.toIntOrNull()
     )
 }
 

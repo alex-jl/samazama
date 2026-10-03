@@ -4,7 +4,8 @@ data class Book(
     val id: Int,
     val title: String,
     val author: String,
-    val imageUrl: String
+    val imageUrl: String,
+    val registrationCount: Int? = null
 )
 
 val sampleBooks = listOf(
@@ -12,18 +13,21 @@ val sampleBooks = listOf(
         22563236,
         "君のクイズ",
         "小川 哲",
-        "https://m.media-amazon.com/images/I/513hg7gy4rL._SL500_.jpg"
+        "https://m.media-amazon.com/images/I/513hg7gy4rL._SL500_.jpg",
+        registrationCount = 2053
     ),
     Book(
         19991860,
         "十角館の殺人 <新装改訂版> (講談社文庫 あ 52-14)",
         "綾辻 行人",
-        "https://m.media-amazon.com/images/I/41VtHAw3hyL._SL500_.jpg"
+        "https://m.media-amazon.com/images/I/41VtHAw3hyL._SL500_.jpg",
+        registrationCount = 64089
     ),
     Book(
         19991860,
         "傲慢と善良",
         "辻村 深月",
-        "https://m.media-amazon.com/images/I/518ZptJK+7L._SL500_.jpg"
+        "https://m.media-amazon.com/images/I/518ZptJK+7L._SL500_.jpg",
+        registrationCount = 25221
     ),
 )

@@ -27,4 +27,8 @@
     <string name="loading_rankings">Loading rankings...</string>
     <string name="failed_to_load_rankings">Unable to load the rankings.</string>
     <string name="retry">Retry</string>
+    <plurals name="registration_count">
+        <item quantity="one">%,d registration</item>
+        <item quantity="other">%,d registrations</item>
+    </plurals>
 </resources>
