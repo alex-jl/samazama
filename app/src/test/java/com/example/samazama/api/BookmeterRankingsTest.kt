@@ -22,36 +22,31 @@ class BookmeterRankingsTest {
                     23467261,
                     "幽冥の岸　十二国記 (新潮文庫 お 37-66)",
                     "小野不由美",
-                    "https://m.media-amazon.com/images/I/51jntQFaCmL._SL500_.jpg",
-                    displayTitle = "幽冥の岸　十二国記"
+                    "https://m.media-amazon.com/images/I/51jntQFaCmL._SL500_.jpg"
                 ),
                 Book(
                     22416936,
                     "一次元の挿し木 (宝島社文庫 『このミス』大賞シリーズ)",
                     "松下 龍之介",
-                    "https://m.media-amazon.com/images/I/51mxzx-4pKL._SL500_.jpg",
-                    displayTitle = "一次元の挿し木"
+                    "https://m.media-amazon.com/images/I/51mxzx-4pKL._SL500_.jpg"
                 ),
                 Book(
                     21832291,
                     "白鳥とコウモリ（上） (幻冬舎文庫)",
                     "東野 圭吾",
-                    "https://m.media-amazon.com/images/I/31sfrOEvWhL._SL500_.jpg",
-                    displayTitle = "白鳥とコウモリ（上）"
+                    "https://m.media-amazon.com/images/I/31sfrOEvWhL._SL500_.jpg"
                 ),
                 Book(
                     580841,
                     "十角館の殺人 <新装改訂版> (講談社文庫 あ 52-14)",
                     "綾辻 行人",
-                    "https://m.media-amazon.com/images/I/41VtHAw3hyL._SL500_.jpg",
-                    displayTitle = "十角館の殺人 <新装改訂版>"
+                    "https://m.media-amazon.com/images/I/41VtHAw3hyL._SL500_.jpg"
                 ),
                 Book(
                     23269675,
                     "本屋さんのある街で (文春文庫 ふ 53-2)",
                     "凪良 ゆう,瀬尾 まいこ,坂木 司,一穂 ミチ,三浦 しをん",
-                    "https://m.media-amazon.com/images/I/516Y8vVJhkL._SL500_.jpg",
-                    displayTitle = "本屋さんのある街で"
+                    "https://m.media-amazon.com/images/I/516Y8vVJhkL._SL500_.jpg"
                 ),
             ),
             books
@@ -96,10 +91,15 @@ class BookmeterRankingsTest {
         val coverless = html.replace(Regex("<img[^>]*51mxzx[^>]*>"), "")
         assertNotEquals(html, coverless)
 
-        val titles = parseRankingBooks(coverless).map { it.displayTitle }
+        val titles = parseRankingBooks(coverless).map { it.title }
 
         assertEquals(
-            listOf("幽冥の岸　十二国記", "白鳥とコウモリ（上）", "十角館の殺人 <新装改訂版>", "本屋さんのある街で"),
+            listOf(
+                "幽冥の岸　十二国記 (新潮文庫 お 37-66)",
+                "白鳥とコウモリ（上） (幻冬舎文庫)",
+                "十角館の殺人 <新装改訂版> (講談社文庫 あ 52-14)",
+                "本屋さんのある街で (文春文庫 ふ 53-2)"
+            ),
             titles
         )
     }

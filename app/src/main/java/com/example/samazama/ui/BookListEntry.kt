@@ -16,7 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,6 +34,9 @@ private val RankWidth = 40.dp
 private val CoverWidth = 64.dp
 private val CoverHeight = 96.dp
 private val CoverTextGap = 16.dp
+
+/** Suffixes such as the " (新潮文庫 お 37-66)" of "幽冥の岸　十二国記 (新潮文庫 お 37-66)". */
+private val IMPRINT_SUFFIX = Regex("\\s*\\([^()]*\\)\\s*$")
 
 @Composable
 fun BookListEntry(book: Book, modifier: Modifier = Modifier, displayIndex: Int? = null) {
@@ -64,7 +72,7 @@ fun BookListEntry(book: Book, modifier: Modifier = Modifier, displayIndex: Int? 
                     .padding(start = CoverTextGap)
             ) {
                 Text(
-                    text = book.displayTitle,
+                    text = styledTitle(book.title),
                     style = MaterialTheme.typography.titleMedium,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 2
@@ -80,6 +88,20 @@ fun BookListEntry(book: Book, modifier: Modifier = Modifier, displayIndex: Int? 
             }
         }
         HorizontalDivider(modifier = Modifier.padding(horizontal = EdgePadding))
+    }
+}
+
+@Composable
+private fun styledTitle(title: String): AnnotatedString {
+    val suffixStart = IMPRINT_SUFFIX.find(title)?.range?.first ?: return AnnotatedString(title)
+    val suffixStyle = SpanStyle(
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+        fontWeight = FontWeight.Normal
+    )
+    return buildAnnotatedString {
+        append(title.substring(0, suffixStart))
+        withStyle(suffixStyle) { append(title.substring(suffixStart)) }
     }
 }
 

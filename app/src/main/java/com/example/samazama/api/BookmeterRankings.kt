@@ -41,9 +41,6 @@ private val TITLE = Regex("class=\"detail__title\">\\s*<a[^>]*>(.*?)</a>", Regex
 private val AUTHOR_LIST = Regex("class=\"detail__authors\">(.*?)</ul>", RegexOption.DOT_MATCHES_ALL)
 private val AUTHOR = Regex("<a[^>]*>(.*?)</a>", RegexOption.DOT_MATCHES_ALL)
 
-/** Suffixes such as the " (新潮文庫 お 37-66)" of "幽冥の岸　十二国記 (新潮文庫 お 37-66)". */
-private val IMPRINT_SUFFIX = Regex("\\s*\\([^()]*\\)\\s*$")
-
 private fun parseBook(item: String): Book? {
     val id = BOOK_ID.find(item)?.groupValues?.get(1)?.toIntOrNull() ?: return null
     val title = TITLE.find(item)?.groupValues?.get(1)?.let { unescapeHtml(it).trim() } ?: return null
@@ -52,8 +49,7 @@ private fun parseBook(item: String): Book? {
         id = id,
         title = title,
         author = parseAuthors(item),
-        imageUrl = unescapeHtml(imageUrl),
-        displayTitle = title.replace(IMPRINT_SUFFIX, "")
+        imageUrl = unescapeHtml(imageUrl)
     )
 }
 

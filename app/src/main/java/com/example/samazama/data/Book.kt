@@ -4,8 +4,7 @@ data class Book(
     val id: Int,
     val title: String,
     val author: String,
-    val imageUrl: String,
-    val displayTitle: String = title
+    val imageUrl: String
 )
 
 val sampleBooks = listOf(
@@ -17,7 +16,7 @@ val sampleBooks = listOf(
     ),
     Book(
         19991860,
-        "十角館の殺人",
+        "十角館の殺人 <新装改訂版> (講談社文庫 あ 52-14)",
         "綾辻 行人",
         "https://m.media-amazon.com/images/I/41VtHAw3hyL._SL500_.jpg"
     ),
