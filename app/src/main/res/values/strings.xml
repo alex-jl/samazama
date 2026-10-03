@@ -9,4 +9,7 @@
     <string name="home">Home</string>
     <string name="search">Search</string>
     <string name="settings">Settings</string>
+    <string name="loading_rankings">Loading rankings...</string>
+    <string name="failed_to_load_rankings">Unable to load the rankings.</string>
+    <string name="retry">Retry</string>
 </resources>

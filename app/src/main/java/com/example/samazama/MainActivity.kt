@@ -2,6 +2,7 @@ package com.example.samazama
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -13,11 +14,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +37,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -52,6 +57,7 @@ import coil3.asImage
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePreviewHandler
 import coil3.compose.LocalAsyncImagePreviewHandler
+import com.example.samazama.api.fetchRankings
 import com.example.samazama.data.Book
 import com.example.samazama.data.sampleBooks
 import com.example.samazama.icon.home
@@ -79,7 +85,57 @@ fun MyApp(modifier: Modifier = Modifier) {
         if (shouldShowOnboarding) {
             OnboardingScreen(onContinueClicked = { shouldShowOnboarding = false })
         } else {
-            BookList()
+            BookRankingScreen()
+        }
+    }
+}
+
+@Composable
+private fun BookRankingScreen(modifier: Modifier = Modifier) {
+    var retryCount by rememberSaveable { mutableIntStateOf(0) }
+    val rankings by produceState<Result<List<Book>>?>(initialValue = null, retryCount) {
+        value = null
+        value = runCatching { fetchRankings() }
+    }
+
+    when (val result = rankings) {
+        null -> LoadingScreen(modifier)
+        else -> result.fold(
+            onSuccess = { books -> BookList(modifier, books) },
+            onFailure = { error ->
+                Log.e("BookRankingScreen", "Failed to load rankings: ${error::class.qualifiedName}: ${error.message}")
+                ErrorScreen(modifier, onRetry = { retryCount++ })
+            }
+        )
+    }
+}
+
+@Composable
+private fun LoadingScreen(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CircularProgressIndicator()
+            Text(
+                text = stringResource(R.string.loading_rankings),
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorScreen(modifier: Modifier = Modifier, onRetry: () -> Unit) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = stringResource(R.string.failed_to_load_rankings))
+            Button(
+                modifier = Modifier
+                    .padding(top = 16.dp)
+                    .wrapContentSize(),
+                onClick = onRetry
+            ) {
+                Text(stringResource(R.string.retry))
+            }
         }
     }
 }

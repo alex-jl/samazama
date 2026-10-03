@@ -16,8 +16,8 @@ private const val USER_AGENT = "Samazama/1.0"
 suspend fun fetchBookmeterPage(url: String): String = withContext(Dispatchers.IO) {
     val connection = (URL(url).openConnection() as HttpURLConnection).apply {
         requestMethod = "GET"
-        connectTimeout = 15_000
-        readTimeout = 15_000
+        connectTimeout = 10_000
+        readTimeout = 10_000
         setRequestProperty("User-Agent", USER_AGENT)
         setRequestProperty("Accept-Language", "ja")
     }
