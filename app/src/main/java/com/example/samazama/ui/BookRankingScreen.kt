@@ -41,9 +41,11 @@ import com.example.samazama.data.sampleBooks
 import kotlinx.coroutines.CancellationException
 
 @Composable
-fun BookRankingScreen(modifier: Modifier = Modifier) {
-    var format by rememberSaveable { mutableStateOf(BookFormat.BUNKO) }
-    var period by rememberSaveable { mutableStateOf(RankingPeriod.MONTH) }
+fun BookRankingScreen(
+    format: BookFormat,
+    period: RankingPeriod,
+    modifier: Modifier = Modifier
+) {
     var retryCount by rememberSaveable { mutableIntStateOf(0) }
     val rankings by produceState<Result<List<Book>>?>(initialValue = null, format, period, retryCount) {
         value = null
@@ -58,11 +60,7 @@ fun BookRankingScreen(modifier: Modifier = Modifier) {
     }
 
     BookRankingContent(
-        format = format,
-        period = period,
         rankings = rankings,
-        onFormatChange = { format = it },
-        onPeriodChange = { period = it },
         onRetry = { retryCount++ },
         modifier = modifier
     )
@@ -100,21 +98,11 @@ private fun ErrorScreen(modifier: Modifier = Modifier, onRetry: () -> Unit) {
 
 @Composable
 private fun BookRankingContent(
-    format: BookFormat,
-    period: RankingPeriod,
     rankings: Result<List<Book>>?,
-    onFormatChange: (BookFormat) -> Unit,
-    onPeriodChange: (RankingPeriod) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxSize()) {
-        RankingFilters(
-            format = format,
-            period = period,
-            onFormatChange = onFormatChange,
-            onPeriodChange = onPeriodChange
-        )
+    Box(modifier = modifier.fillMaxSize()) {
         when (rankings) {
             null -> LoadingScreen()
             else -> rankings.fold(
@@ -126,7 +114,7 @@ private fun BookRankingContent(
 }
 
 @Composable
-private fun RankingFilters(
+fun RankingFilters(
     format: BookFormat,
     period: RankingPeriod,
     onFormatChange: (BookFormat) -> Unit,
@@ -134,7 +122,7 @@ private fun RankingFilters(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        modifier = modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         DropdownChip(BookFormat.entries, format, onFormatChange) { stringResource(it.labelRes) }
@@ -200,11 +188,7 @@ private val RankingPeriod.labelRes: Int
 private fun BookRankingContentPreview() {
     BookPreviewTheme {
         BookRankingContent(
-            format = BookFormat.BUNKO,
-            period = RankingPeriod.MONTH,
             rankings = Result.success(sampleBooks),
-            onFormatChange = {},
-            onPeriodChange = {},
             onRetry = {}
         )
     }

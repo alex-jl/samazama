@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.samazama.api.BookFormat
+import com.example.samazama.api.RankingPeriod
 import com.example.samazama.data.ThemeMode
 import com.example.samazama.data.loadThemeMode
 import com.example.samazama.data.saveThemeMode
@@ -28,6 +30,7 @@ import com.example.samazama.ui.AppTopBar
 import com.example.samazama.ui.BookRankingScreen
 import com.example.samazama.ui.HomeScreen
 import com.example.samazama.ui.NavTab
+import com.example.samazama.ui.RankingFilters
 import com.example.samazama.ui.SearchScreen
 import com.example.samazama.ui.SettingsScreen
 import com.example.samazama.ui.theme.SamazamaTheme
@@ -72,6 +75,8 @@ fun MyApp(
     modifier: Modifier = Modifier
 ) {
     var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
+    var rankingFormat by rememberSaveable { mutableStateOf(BookFormat.BUNKO) }
+    var rankingPeriod by rememberSaveable { mutableStateOf(RankingPeriod.MONTH) }
     val goHome = { screen = Screen.HOME }
 
     BackHandler(enabled = screen != Screen.HOME, onBack = goHome)
@@ -82,7 +87,16 @@ fun MyApp(
             AppTopBar(
                 title = stringResource(screen.titleRes),
                 showBackButton = screen != Screen.HOME,
-                onBackClick = goHome
+                onBackClick = goHome,
+                expanded = screen == Screen.RANKINGS,
+                expandedContent = {
+                    RankingFilters(
+                        format = rankingFormat,
+                        period = rankingPeriod,
+                        onFormatChange = { rankingFormat = it },
+                        onPeriodChange = { rankingPeriod = it }
+                    )
+                }
             )
         },
         bottomBar = {
@@ -107,7 +121,7 @@ fun MyApp(
                     onRankingsClick = { screen = Screen.RANKINGS },
                     onSearchClick = { screen = Screen.SEARCH }
                 )
-                Screen.RANKINGS -> BookRankingScreen()
+                Screen.RANKINGS -> BookRankingScreen(rankingFormat, rankingPeriod)
                 Screen.SEARCH -> SearchScreen()
                 Screen.SETTINGS -> SettingsScreen(themeMode, onThemeModeChange)
             }
