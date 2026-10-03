@@ -5,21 +5,13 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,14 +20,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,19 +34,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import coil3.annotation.ExperimentalCoilApi
-import coil3.asImage
-import coil3.compose.AsyncImage
-import coil3.compose.AsyncImagePreviewHandler
-import coil3.compose.LocalAsyncImagePreviewHandler
 import com.example.samazama.api.fetchRankings
 import com.example.samazama.data.Book
 import com.example.samazama.data.sampleBooks
@@ -64,6 +44,8 @@ import com.example.samazama.icon.home
 import com.example.samazama.icon.menu
 import com.example.samazama.icon.search
 import com.example.samazama.icon.settings
+import com.example.samazama.ui.BookList
+import com.example.samazama.ui.BookPreviewTheme
 import com.example.samazama.ui.theme.SamazamaTheme
 
 class MainActivity : ComponentActivity() {
@@ -101,7 +83,7 @@ private fun BookRankingScreen(modifier: Modifier = Modifier) {
     when (val result = rankings) {
         null -> LoadingScreen(modifier)
         else -> result.fold(
-            onSuccess = { books -> BookList(modifier, books) },
+            onSuccess = { books -> BookRankingList(modifier, books) },
             onFailure = { error ->
                 Log.e("BookRankingScreen", "Failed to load rankings: ${error::class.qualifiedName}: ${error.message}")
                 ErrorScreen(modifier, onRetry = { retryCount++ })
@@ -142,7 +124,7 @@ private fun ErrorScreen(modifier: Modifier = Modifier, onRetry: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BookList(
+private fun BookRankingList(
     modifier: Modifier = Modifier,
     books: List<Book> = sampleBooks
 ) {
@@ -197,76 +179,13 @@ private fun BookList(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        BookList(
+            books = books,
             modifier = modifier
                 .padding(innerPadding)
                 .padding(top = 4.dp),
-        ) {
-            itemsIndexed(items = books) { i, book -> BookCard(book = book, displayIndex = i + 1) }
-        }
-    }
-}
-
-@Composable
-private fun BookCard(book: Book, displayIndex: Int?, modifier: Modifier = Modifier) {
-    Row(
-        modifier = Modifier.padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (displayIndex != null) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = displayIndex.toString(),
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                    ),
-                )
-            }
-        }
-        OutlinedCard(
-            modifier = modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-            elevation = CardDefaults.elevatedCardElevation(4.dp)
-        ) {
-            BookCardContent(book, displayIndex)
-        }
-    }
-}
-
-@Composable
-private fun BookCardContent(book: Book, displayIndex: Int?, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.padding(4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            AsyncImage(
-                model = book.imageUrl,
-                contentDescription = "Cover image for " + book.title,
-                modifier = Modifier
-                    .height(100.dp)
-                    .padding(vertical = 4.dp, horizontal = 10.dp)
-            )
-        }
-        Column(
-            modifier = Modifier
-                .weight(1f)
-        ) {
-            Text(
-                text = book.displayTitle,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                ),
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1
-            )
-            Text(text = book.author)
-        }
+            numbered = true
+        )
     }
 }
 
@@ -307,28 +226,16 @@ fun OnboardingPreview() {
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Preview(showBackground = true, widthDp = 320)
 @Preview(
     showBackground = true,
     widthDp = 320,
     uiMode = UI_MODE_NIGHT_YES,
-    name = "BookListPreviewDark"
+    name = "BookRankingListPreviewDark"
 )
 @Composable
-fun BookListPreview() {
-    val context = LocalContext.current
-    val previewHandler = AsyncImagePreviewHandler {
-        checkNotNull(
-            ContextCompat.getDrawable(
-                context,
-                R.drawable.example_cover
-            )
-        ).asImage(shareable = true)
-    }
-    CompositionLocalProvider(LocalAsyncImagePreviewHandler provides previewHandler) {
-        SamazamaTheme {
-            BookList()
-        }
+fun BookRankingListPreview() {
+    BookPreviewTheme {
+        BookRankingList()
     }
 }
