@@ -34,7 +34,7 @@ fun HomeScreen(onRankingsClick: () -> Unit, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SectionHeader(title: String, modifier: Modifier = Modifier) {
+internal fun SectionHeader(title: String, modifier: Modifier = Modifier) {
     Text(
         text = title,
         modifier = modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
