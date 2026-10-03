@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,8 +33,7 @@ fun AppTopBar(
     showBackButton: Boolean,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    expanded: Boolean = false,
-    expandedContent: @Composable () -> Unit = {}
+    sections: @Composable ColumnScope.() -> Unit = {}
 ) {
     Surface(modifier = modifier, color = MaterialTheme.colorScheme.primaryContainer) {
         Column {
@@ -60,13 +60,18 @@ fun AppTopBar(
                     }
                 }
             )
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                expandedContent()
-            }
+            sections()
         }
+    }
+}
+
+@Composable
+fun ColumnScope.TopBarSection(visible: Boolean, content: @Composable () -> Unit) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically()
+    ) {
+        content()
     }
 }

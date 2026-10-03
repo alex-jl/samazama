@@ -67,12 +67,12 @@ fun BookRankingScreen(
 }
 
 @Composable
-private fun LoadingScreen(modifier: Modifier = Modifier) {
+internal fun LoadingScreen(message: String, modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CircularProgressIndicator()
             Text(
-                text = stringResource(R.string.loading_rankings),
+                text = message,
                 modifier = Modifier.padding(top = 16.dp)
             )
         }
@@ -80,10 +80,10 @@ private fun LoadingScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ErrorScreen(modifier: Modifier = Modifier, onRetry: () -> Unit) {
+internal fun ErrorScreen(message: String, modifier: Modifier = Modifier, onRetry: () -> Unit) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = stringResource(R.string.failed_to_load_rankings))
+            Text(text = message)
             Button(
                 modifier = Modifier
                     .padding(top = 16.dp)
@@ -104,10 +104,15 @@ private fun BookRankingContent(
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         when (rankings) {
-            null -> LoadingScreen()
+            null -> LoadingScreen(stringResource(R.string.loading_rankings))
             else -> rankings.fold(
                 onSuccess = { books -> BookList(books = books, numbered = true) },
-                onFailure = { ErrorScreen(onRetry = onRetry) }
+                onFailure = {
+                    ErrorScreen(
+                        message = stringResource(R.string.failed_to_load_rankings),
+                        onRetry = onRetry
+                    )
+                }
             )
         }
     }

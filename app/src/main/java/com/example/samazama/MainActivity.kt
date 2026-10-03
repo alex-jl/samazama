@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,8 +32,10 @@ import com.example.samazama.ui.BookRankingScreen
 import com.example.samazama.ui.HomeScreen
 import com.example.samazama.ui.NavTab
 import com.example.samazama.ui.RankingFilters
+import com.example.samazama.ui.SearchField
 import com.example.samazama.ui.SearchScreen
 import com.example.samazama.ui.SettingsScreen
+import com.example.samazama.ui.TopBarSection
 import com.example.samazama.ui.theme.SamazamaTheme
 
 class MainActivity : ComponentActivity() {
@@ -77,6 +80,9 @@ fun MyApp(
     var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
     var rankingFormat by rememberSaveable { mutableStateOf(BookFormat.BUNKO) }
     var rankingPeriod by rememberSaveable { mutableStateOf(RankingPeriod.MONTH) }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var searchKeyword by rememberSaveable { mutableStateOf<String?>(null) }
+    var searchSubmission by rememberSaveable { mutableIntStateOf(0) }
     val goHome = { screen = Screen.HOME }
 
     BackHandler(enabled = screen != Screen.HOME, onBack = goHome)
@@ -88,14 +94,27 @@ fun MyApp(
                 title = stringResource(screen.titleRes),
                 showBackButton = screen != Screen.HOME,
                 onBackClick = goHome,
-                expanded = screen == Screen.RANKINGS,
-                expandedContent = {
-                    RankingFilters(
-                        format = rankingFormat,
-                        period = rankingPeriod,
-                        onFormatChange = { rankingFormat = it },
-                        onPeriodChange = { rankingPeriod = it }
-                    )
+                sections = {
+                    TopBarSection(visible = screen == Screen.RANKINGS) {
+                        RankingFilters(
+                            format = rankingFormat,
+                            period = rankingPeriod,
+                            onFormatChange = { rankingFormat = it },
+                            onPeriodChange = { rankingPeriod = it }
+                        )
+                    }
+                    TopBarSection(visible = screen == Screen.SEARCH) {
+                        SearchField(
+                            query = searchQuery,
+                            onQueryChange = { searchQuery = it },
+                            onSearch = {
+                                if (searchQuery.isNotBlank()) {
+                                    searchKeyword = searchQuery.trim()
+                                    searchSubmission++
+                                }
+                            }
+                        )
+                    }
                 }
             )
         },
@@ -122,7 +141,7 @@ fun MyApp(
                     onSearchClick = { screen = Screen.SEARCH }
                 )
                 Screen.RANKINGS -> BookRankingScreen(rankingFormat, rankingPeriod)
-                Screen.SEARCH -> SearchScreen()
+                Screen.SEARCH -> SearchScreen(searchKeyword, searchSubmission)
                 Screen.SETTINGS -> SettingsScreen(themeMode, onThemeModeChange)
             }
         }
