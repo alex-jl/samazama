@@ -35,7 +35,6 @@ fun LoginScreen(
     AndroidView(
         factory = { context ->
             WebView(context).apply {
-                // Bookmeter's login form does not work without JavaScript.
                 settings.javaScriptEnabled = true
                 webViewClient = object : WebViewClient() {
                     private var finished = false

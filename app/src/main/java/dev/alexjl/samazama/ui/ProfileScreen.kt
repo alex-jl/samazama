@@ -29,6 +29,8 @@ fun ProfileScreen(
 ) {
     ProfileContent(
         loggedIn = session.loggedIn,
+        loggingOut = session.loggingOut,
+        logOutFailed = session.logOutFailed,
         onBackClick = onBackClick,
         onAccountClick = onAccountClick,
         onLogInClick = onLogInClick,
@@ -41,6 +43,8 @@ fun ProfileScreen(
 @Composable
 private fun ProfileContent(
     loggedIn: Result<Boolean>?,
+    loggingOut: Boolean,
+    logOutFailed: Boolean,
     onBackClick: () -> Unit,
     onAccountClick: () -> Unit,
     onLogInClick: () -> Unit,
@@ -52,8 +56,9 @@ private fun ProfileContent(
     onBackClick = onBackClick,
     modifier = modifier
 ) {
-    when (loggedIn) {
-        null -> LoadingScreen(stringResource(R.string.checking_login))
+    when {
+        loggingOut -> LoadingScreen(stringResource(R.string.logging_out))
+        loggedIn == null -> LoadingScreen(stringResource(R.string.checking_login))
         else -> loggedIn.fold(
             onSuccess = {
                 if (it) {
@@ -63,6 +68,13 @@ private fun ProfileContent(
                         }
                         OutlinedButton(onClick = onLogOutClick) {
                             Text(stringResource(R.string.log_out))
+                        }
+                        if (logOutFailed) {
+                            Text(
+                                text = stringResource(R.string.failed_to_log_out),
+                                color = MaterialTheme.colorScheme.error,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
                 } else {
@@ -107,7 +119,7 @@ private fun LoginStatus(message: String, actions: @Composable () -> Unit) {
 @Composable
 private fun LoggedOutProfilePreview() {
     SamazamaTheme {
-        ProfileContent(Result.success(false), {}, {}, {}, {}, {})
+        ProfileContent(Result.success(false), false, false, {}, {}, {}, {}, {})
     }
 }
 
@@ -115,6 +127,6 @@ private fun LoggedOutProfilePreview() {
 @Composable
 private fun LoggedInProfilePreview() {
     SamazamaTheme {
-        ProfileContent(Result.success(true), {}, {}, {}, {}, {})
+        ProfileContent(Result.success(true), false, true, {}, {}, {}, {}, {})
     }
 }

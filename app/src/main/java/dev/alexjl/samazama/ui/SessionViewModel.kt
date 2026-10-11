@@ -12,6 +12,10 @@ import kotlinx.coroutines.launch
 class SessionViewModel : ViewModel() {
     var loggedIn by mutableStateOf<Result<Boolean>?>(null)
         private set
+    var loggingOut by mutableStateOf(false)
+        private set
+    var logOutFailed by mutableStateOf(false)
+        private set
 
     init {
         refresh()
@@ -19,6 +23,7 @@ class SessionViewModel : ViewModel() {
 
     fun refresh() {
         loggedIn = null
+        logOutFailed = false
         viewModelScope.launch {
             loggedIn = loadResult("SessionViewModel", "Failed to check login") {
                 isLoggedInToBookmeter()
@@ -27,11 +32,19 @@ class SessionViewModel : ViewModel() {
     }
 
     fun onLoggedIn() {
+        logOutFailed = false
         loggedIn = Result.success(true)
     }
 
     fun logOut() {
-        logOutOfBookmeter()
-        loggedIn = Result.success(false)
+        if (loggingOut) return
+        loggingOut = true
+        logOutFailed = false
+        viewModelScope.launch {
+            loadResult("SessionViewModel", "Failed to log out") { logOutOfBookmeter() }
+                .onSuccess { loggedIn = Result.success(false) }
+                .onFailure { logOutFailed = true }
+            loggingOut = false
+        }
     }
 }

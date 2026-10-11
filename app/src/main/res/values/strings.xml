@@ -12,6 +12,8 @@
     <string name="account_no_fields">No filled-in account fields were found on the page.</string>
     <string name="log_in">Log in</string>
     <string name="log_out">Log out</string>
+    <string name="logging_out">Logging out...</string>
+    <string name="failed_to_log_out">Unable to log out. You are still logged in.</string>
     <string name="checking_login">Checking login...</string>
     <string name="failed_to_check_login">Unable to check whether you are logged in.</string>
     <string name="logged_out_message">Log in to Bookmeter to see your books.</string>
