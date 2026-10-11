@@ -14,11 +14,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.samazama.R
+import com.example.samazama.api.BOOKMETER_BASE_URL
 import com.example.samazama.ui.icons.chevron_right
+import com.example.samazama.ui.icons.open_in_new
 import com.example.samazama.ui.theme.SamazamaTheme
 
 @Composable
@@ -27,6 +31,8 @@ fun HomeScreen(
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val uriHandler = LocalUriHandler.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -35,6 +41,18 @@ fun HomeScreen(
         SectionHeader(stringResource(R.string.discover))
         SectionLink(stringResource(R.string.rankings), onClick = onRankingsClick)
         SectionLink(stringResource(R.string.search), onClick = onSearchClick)
+        SectionHeader(stringResource(R.string.other))
+        SectionLink(
+            label = stringResource(R.string.visit_bookmeter),
+            onClick = { uriHandler.openUri(BOOKMETER_BASE_URL) },
+            icon = open_in_new
+        )
+        Text(
+            text = stringResource(R.string.about_unofficial, stringResource(R.string.app_name)),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outline,
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }
 
@@ -49,11 +67,16 @@ internal fun SectionHeader(title: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SectionLink(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun SectionLink(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector = chevron_right
+) {
     ListItem(
         headlineContent = { Text(label) },
         modifier = modifier.clickable(onClick = onClick),
-        trailingContent = { Icon(chevron_right, contentDescription = null) },
+        trailingContent = { Icon(icon, contentDescription = null) },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
     )
 }
