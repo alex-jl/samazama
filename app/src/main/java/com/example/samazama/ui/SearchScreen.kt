@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.samazama.R
 import com.example.samazama.api.searchBooks
+import com.example.samazama.data.Book
 import com.example.samazama.data.BookSearchPage
 import com.example.samazama.data.sampleBooks
 import com.example.samazama.icon.close
@@ -48,7 +49,12 @@ import com.example.samazama.icon.search
 import kotlinx.coroutines.CancellationException
 
 @Composable
-fun SearchScreen(keyword: String?, submission: Int, modifier: Modifier = Modifier) {
+fun SearchScreen(
+    keyword: String?,
+    submission: Int,
+    onBookClick: (Book) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var page by rememberSaveable(keyword, submission) { mutableIntStateOf(1) }
     var retryCount by rememberSaveable { mutableIntStateOf(0) }
     val results by produceState<Result<BookSearchPage>?>(
@@ -69,6 +75,7 @@ fun SearchScreen(keyword: String?, submission: Int, modifier: Modifier = Modifie
     SearchContent(
         hasSearched = keyword != null,
         results = results,
+        onBookClick = onBookClick,
         onPageChange = { page = it },
         onRetry = { retryCount++ },
         modifier = modifier
@@ -120,6 +127,7 @@ fun SearchField(
 private fun SearchContent(
     hasSearched: Boolean,
     results: Result<BookSearchPage>?,
+    onBookClick: (Book) -> Unit,
     onPageChange: (Int) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
@@ -129,7 +137,7 @@ private fun SearchContent(
             !hasSearched -> Unit
             results == null -> LoadingScreen(stringResource(R.string.searching))
             else -> results.fold(
-                onSuccess = { SearchResults(it, onPageChange) },
+                onSuccess = { SearchResults(it, onBookClick, onPageChange) },
                 onFailure = {
                     ErrorScreen(
                         message = stringResource(R.string.failed_to_search),
@@ -144,6 +152,7 @@ private fun SearchContent(
 @Composable
 private fun SearchResults(
     results: BookSearchPage,
+    onBookClick: (Book) -> Unit,
     onPageChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -161,7 +170,11 @@ private fun SearchResults(
                 )
             }
         } else {
-            BookList(books = results.books, modifier = Modifier.weight(1f))
+            BookList(
+                books = results.books,
+                onBookClick = onBookClick,
+                modifier = Modifier.weight(1f)
+            )
         }
         if (results.pageCount > 1 || results.page > 1) {
             HorizontalDivider()
@@ -222,6 +235,7 @@ private fun SearchScreenPreview() {
             results = Result.success(
                 BookSearchPage(books = sampleBooks, page = 2, pageCount = 3, totalCount = 51)
             ),
+            onBookClick = {},
             onPageChange = {},
             onRetry = {}
         )

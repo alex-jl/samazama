@@ -6,10 +6,16 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -20,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.samazama.api.BookFormat
 import com.example.samazama.api.RankingPeriod
@@ -28,6 +35,7 @@ import com.example.samazama.data.loadThemeMode
 import com.example.samazama.data.saveThemeMode
 import com.example.samazama.ui.AppNavigationBar
 import com.example.samazama.ui.AppTopBar
+import com.example.samazama.ui.BookDetailsScreen
 import com.example.samazama.ui.BookRankingScreen
 import com.example.samazama.ui.HomeScreen
 import com.example.samazama.ui.NavTab
@@ -83,19 +91,24 @@ fun MyApp(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchKeyword by rememberSaveable { mutableStateOf<String?>(null) }
     var searchSubmission by rememberSaveable { mutableIntStateOf(0) }
+    var openBookIds by rememberSaveable { mutableStateOf(emptyList<Int>()) }
+    val bookOpen = openBookIds.isNotEmpty()
     val goHome = { screen = Screen.HOME }
+    val openBook = { id: Int -> openBookIds = openBookIds + id }
+    val closeBook = { openBookIds = openBookIds.dropLast(1) }
 
     BackHandler(enabled = screen != Screen.HOME, onBack = goHome)
+    BackHandler(enabled = bookOpen, onBack = closeBook)
 
     Scaffold(
         modifier = modifier,
         topBar = {
             AppTopBar(
-                title = stringResource(screen.titleRes),
-                showBackButton = screen != Screen.HOME,
-                onBackClick = goHome,
+                title = stringResource(if (bookOpen) R.string.book_details else screen.titleRes),
+                showBackButton = bookOpen || screen != Screen.HOME,
+                onBackClick = if (bookOpen) closeBook else goHome,
                 sections = {
-                    TopBarSection(visible = screen == Screen.RANKINGS) {
+                    TopBarSection(visible = screen == Screen.RANKINGS && !bookOpen) {
                         RankingFilters(
                             format = rankingFormat,
                             period = rankingPeriod,
@@ -103,7 +116,7 @@ fun MyApp(
                             onPeriodChange = { rankingPeriod = it }
                         )
                     }
-                    TopBarSection(visible = screen == Screen.SEARCH) {
+                    TopBarSection(visible = screen == Screen.SEARCH && !bookOpen) {
                         SearchField(
                             query = searchQuery,
                             onQueryChange = { searchQuery = it },
@@ -122,6 +135,7 @@ fun MyApp(
             AppNavigationBar(
                 selected = screen.tab,
                 onSelect = { tab ->
+                    openBookIds = emptyList()
                     screen = when (tab) {
                         NavTab.HOME -> Screen.HOME
                         NavTab.SEARCH -> Screen.SEARCH
@@ -131,18 +145,40 @@ fun MyApp(
             )
         }
     ) { innerPadding ->
-        AnimatedContent(
-            targetState = screen,
-            modifier = Modifier.padding(innerPadding)
-        ) { target ->
-            when (target) {
-                Screen.HOME -> HomeScreen(
-                    onRankingsClick = { screen = Screen.RANKINGS },
-                    onSearchClick = { screen = Screen.SEARCH }
-                )
-                Screen.RANKINGS -> BookRankingScreen(rankingFormat, rankingPeriod)
-                Screen.SEARCH -> SearchScreen(searchKeyword, searchSubmission)
-                Screen.SETTINGS -> SettingsScreen(themeMode, onThemeModeChange)
+        Box(modifier = Modifier.padding(innerPadding)) {
+            AnimatedContent(
+                targetState = screen,
+                modifier = if (bookOpen) Modifier.clearAndSetSemantics {} else Modifier
+            ) { target ->
+                when (target) {
+                    Screen.HOME -> HomeScreen(
+                        onRankingsClick = { screen = Screen.RANKINGS },
+                        onSearchClick = { screen = Screen.SEARCH }
+                    )
+                    Screen.RANKINGS -> BookRankingScreen(
+                        rankingFormat,
+                        rankingPeriod,
+                        onBookClick = { openBook(it.id) }
+                    )
+                    Screen.SEARCH -> SearchScreen(
+                        searchKeyword,
+                        searchSubmission,
+                        onBookClick = { openBook(it.id) }
+                    )
+                    Screen.SETTINGS -> SettingsScreen(themeMode, onThemeModeChange)
+                }
+            }
+            AnimatedVisibility(visible = bookOpen, enter = fadeIn(), exit = fadeOut()) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    AnimatedContent(targetState = openBookIds.lastOrNull()) { bookId ->
+                        if (bookId != null) {
+                            BookDetailsScreen(bookId, onEditionClick = openBook)
+                        }
+                    }
+                }
             }
         }
     }

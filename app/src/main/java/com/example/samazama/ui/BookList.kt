@@ -21,12 +21,17 @@ import com.example.samazama.ui.theme.SamazamaTheme
 @Composable
 fun BookList(
     books: List<Book>,
+    onBookClick: (Book) -> Unit,
     modifier: Modifier = Modifier,
     numbered: Boolean = false
 ) {
     LazyColumn(modifier = modifier) {
         itemsIndexed(items = books) { i, book ->
-            BookListEntry(book = book, displayIndex = if (numbered) i + 1 else null)
+            BookListEntry(
+                book = book,
+                onClick = { onBookClick(book) },
+                displayIndex = if (numbered) i + 1 else null
+            )
         }
     }
 }
@@ -58,7 +63,7 @@ internal fun BookPreviewTheme(content: @Composable () -> Unit) {
 @Composable
 private fun BookListPreview() {
     BookPreviewTheme {
-        BookList(sampleBooks)
+        BookList(sampleBooks, onBookClick = {})
     }
 }
 
@@ -72,6 +77,6 @@ private fun BookListPreview() {
 @Composable
 private fun NumberedBookListPreview() {
     BookPreviewTheme {
-        BookList(sampleBooks, numbered = true)
+        BookList(sampleBooks, onBookClick = {}, numbered = true)
     }
 }

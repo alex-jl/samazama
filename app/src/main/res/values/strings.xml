@@ -33,6 +33,29 @@
     <string name="loading_rankings">Loading rankings...</string>
     <string name="failed_to_load_rankings">Unable to load the rankings.</string>
     <string name="retry">Retry</string>
+    <string name="book_details">Book details</string>
+    <string name="loading_book">Loading book...</string>
+    <string name="failed_to_load_book">Unable to load the book.</string>
+    <string name="links">Links</string>
+    <string name="read_sample">Read a sample</string>
+    <string name="other_editions">Other editions</string>
+    <string name="unknown_format">Unknown format</string>
+    <string name="reviews_with_count">Reviews (%1$s)</string>
+    <string name="no_reviews">No reviews yet.</string>
+    <string name="spoiler_hidden">This review contains spoilers.</string>
+    <string name="show_spoiler">Show</string>
+    <plurals name="page_count">
+        <item quantity="one">%,d page</item>
+        <item quantity="other">%,d pages</item>
+    </plurals>
+    <plurals name="nice_count">
+        <item quantity="one">%,d nice</item>
+        <item quantity="other">%,d nices</item>
+    </plurals>
+    <plurals name="comment_count">
+        <item quantity="one">%,d comment</item>
+        <item quantity="other">%,d comments</item>
+    </plurals>
     <plurals name="registration_count">
         <item quantity="one">%,d registration</item>
         <item quantity="other">%,d registrations</item>

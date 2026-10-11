@@ -46,6 +46,7 @@ import kotlinx.coroutines.CancellationException
 fun BookRankingScreen(
     format: BookFormat,
     period: RankingPeriod,
+    onBookClick: (Book) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var retryCount by rememberSaveable { mutableIntStateOf(0) }
@@ -63,6 +64,7 @@ fun BookRankingScreen(
 
     BookRankingContent(
         rankings = rankings,
+        onBookClick = onBookClick,
         onRetry = { retryCount++ },
         modifier = modifier
     )
@@ -101,6 +103,7 @@ internal fun ErrorScreen(message: String, modifier: Modifier = Modifier, onRetry
 @Composable
 private fun BookRankingContent(
     rankings: Result<List<Book>>?,
+    onBookClick: (Book) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -108,7 +111,9 @@ private fun BookRankingContent(
         when (rankings) {
             null -> LoadingScreen(stringResource(R.string.loading_rankings))
             else -> rankings.fold(
-                onSuccess = { books -> BookList(books = books, numbered = true) },
+                onSuccess = { books ->
+                    BookList(books = books, onBookClick = onBookClick, numbered = true)
+                },
                 onFailure = {
                     ErrorScreen(
                         message = stringResource(R.string.failed_to_load_rankings),
@@ -201,6 +206,7 @@ private fun BookRankingContentPreview() {
     BookPreviewTheme {
         BookRankingContent(
             rankings = Result.success(sampleBooks),
+            onBookClick = {},
             onRetry = {}
         )
     }

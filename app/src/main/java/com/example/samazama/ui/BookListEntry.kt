@@ -3,6 +3,7 @@ package com.example.samazama.ui
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -23,8 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
@@ -45,11 +48,21 @@ private val CoverHeight = 96.dp
 private val CoverTextGap = 16.dp
 
 /** Suffixes such as the " (新潮文庫 お 37-66)" of "幽冥の岸　十二国記 (新潮文庫 お 37-66)". */
-private val IMPRINT_SUFFIX = Regex("\\s*\\([^()]*\\)\\s*$")
+internal val IMPRINT_SUFFIX = Regex("\\s*\\([^()]*\\)\\s*$")
 
 @Composable
-fun BookListEntry(book: Book, modifier: Modifier = Modifier, displayIndex: Int? = null) {
-    Column(modifier = modifier) {
+fun BookListEntry(
+    book: Book,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    displayIndex: Int? = null
+) {
+    Column(
+        modifier = modifier.clickable(
+            onClickLabel = stringResource(R.string.view_book),
+            onClick = onClick
+        )
+    ) {
         Row(
             modifier = Modifier
                 .padding(horizontal = EdgePadding, vertical = 12.dp)
@@ -127,10 +140,19 @@ fun BookListEntry(book: Book, modifier: Modifier = Modifier, displayIndex: Int? 
 }
 
 @Composable
-private fun RegistrationChip(count: Int, modifier: Modifier = Modifier) {
+internal fun RegistrationChip(count: Int, modifier: Modifier = Modifier) {
     val description = pluralStringResource(R.plurals.registration_count, count, count)
-    Surface(
+    InfoChip(
+        text = NumberFormat.getIntegerInstance().format(count),
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
+        icon = bookmarks
+    )
+}
+
+@Composable
+internal fun InfoChip(text: String, modifier: Modifier = Modifier, icon: ImageVector? = null) {
+    Surface(
+        modifier = modifier,
         shape = RoundedCornerShape(8.dp),
         color = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -140,14 +162,17 @@ private fun RegistrationChip(count: Int, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = bookmarks,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
-            )
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                        .size(16.dp)
+                )
+            }
             Text(
-                text = NumberFormat.getIntegerInstance().format(count),
-                modifier = Modifier.padding(start = 4.dp),
+                text = text,
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1
             )
@@ -165,7 +190,7 @@ private fun RegistrationChip(count: Int, modifier: Modifier = Modifier) {
 @Composable
 private fun BookListEntryPreview() {
     BookPreviewTheme {
-        BookListEntry(sampleBooks.first())
+        BookListEntry(sampleBooks.first(), onClick = {})
     }
 }
 
@@ -179,6 +204,6 @@ private fun BookListEntryPreview() {
 @Composable
 private fun NumberedBookListEntryPreview() {
     BookPreviewTheme {
-        BookListEntry(sampleBooks.first(), displayIndex = 1)
+        BookListEntry(sampleBooks.first(), onClick = {}, displayIndex = 1)
     }
 }
