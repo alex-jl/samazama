@@ -32,6 +32,8 @@ import androidx.navigation.compose.rememberNavController
 import dev.alexjl.samazama.data.ThemeMode
 import dev.alexjl.samazama.data.loadThemeMode
 import dev.alexjl.samazama.data.saveThemeMode
+import dev.alexjl.samazama.ui.AccountRoute
+import dev.alexjl.samazama.ui.AccountScreen
 import dev.alexjl.samazama.ui.AppNavigationBar
 import dev.alexjl.samazama.ui.AuthorDetailsScreen
 import dev.alexjl.samazama.ui.AuthorRoute
@@ -40,12 +42,15 @@ import dev.alexjl.samazama.ui.BookRankingScreen
 import dev.alexjl.samazama.ui.BookRoute
 import dev.alexjl.samazama.ui.HomeRoute
 import dev.alexjl.samazama.ui.HomeScreen
+import dev.alexjl.samazama.ui.LoginRoute
+import dev.alexjl.samazama.ui.LoginScreen
 import dev.alexjl.samazama.ui.NavTab
 import dev.alexjl.samazama.ui.ProfileRoute
 import dev.alexjl.samazama.ui.ProfileScreen
 import dev.alexjl.samazama.ui.RankingsRoute
 import dev.alexjl.samazama.ui.SearchRoute
 import dev.alexjl.samazama.ui.SearchScreen
+import dev.alexjl.samazama.ui.SessionViewModel
 import dev.alexjl.samazama.ui.SettingsRoute
 import dev.alexjl.samazama.ui.SettingsScreen
 import dev.alexjl.samazama.ui.theme.SamazamaTheme
@@ -146,7 +151,26 @@ fun MyApp(
                 )
             }
             composable<ProfileRoute> {
-                ProfileScreen(onBackClick = goBack)
+                ProfileScreen(
+                    session = viewModel(viewModelStoreOwner = checkNotNull(appScope)),
+                    onBackClick = goBack,
+                    onAccountClick = { navController.navigate(AccountRoute) },
+                    onLogInClick = { navController.navigate(LoginRoute) }
+                )
+            }
+            composable<AccountRoute> {
+                AccountScreen(viewModel = viewModel(), onBackClick = goBack)
+            }
+            composable<LoginRoute> {
+                val session: SessionViewModel =
+                    viewModel(viewModelStoreOwner = checkNotNull(appScope))
+                LoginScreen(
+                    onBackClick = goBack,
+                    onLoggedIn = {
+                        session.onLoggedIn()
+                        goBack()
+                    }
+                )
             }
             composable<SearchRoute> {
                 SearchScreen(

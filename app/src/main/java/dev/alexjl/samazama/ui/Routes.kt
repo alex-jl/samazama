@@ -12,6 +12,12 @@ data object RankingsRoute
 data object ProfileRoute
 
 @Serializable
+data object LoginRoute
+
+@Serializable
+data object AccountRoute
+
+@Serializable
 data object SearchRoute
 
 @Serializable
