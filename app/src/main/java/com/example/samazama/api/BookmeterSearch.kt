@@ -1,6 +1,9 @@
 package com.example.samazama.api
 
 import com.example.samazama.data.BookSearchPage
+import org.json.JSONException
+import org.json.JSONObject
+import org.jsoup.Jsoup
 import java.net.URLEncoder
 
 fun searchUrl(keyword: String, page: Int = 1): String =
@@ -11,12 +14,14 @@ suspend fun searchBooks(keyword: String, page: Int = 1): BookSearchPage =
     parseSearchPage(fetchBookmeterPage(searchUrl(keyword, page)))
 
 fun parseSearchPage(html: String): BookSearchPage {
-    val books = html.split(SEARCH_ITEM_START).drop(1)
+    val document = Jsoup.parse(html)
+    val books = document.select("li.group__book")
         .mapNotNull { parseBook(it, preferCoverTitle = true) }
-    val pagination = PAGINATION.find(html)?.groupValues?.get(1)?.let(::unescapeHtml).orEmpty()
-    val offset = paginationValue(pagination, "offset") ?: 0
-    val perPage = paginationValue(pagination, "per_page")?.takeIf { it > 0 }
-    val totalCount = paginationValue(pagination, "total") ?: books.size
+    val pagination = document.selectFirst("[data-pagination]")?.attr("data-pagination")
+        ?.let(::parsePagination)
+    val offset = pagination?.optInt("offset") ?: 0
+    val perPage = pagination?.optInt("per_page")?.takeIf { it > 0 }
+    val totalCount = pagination?.takeIf { it.has("total") }?.optInt("total") ?: books.size
     return BookSearchPage(
         books = books,
         page = if (perPage != null) offset / perPage + 1 else 1,
@@ -29,10 +34,10 @@ fun parseSearchPage(html: String): BookSearchPage {
     )
 }
 
-private fun paginationValue(pagination: String, key: String): Int? =
-    Regex("\"$key\":(\\d+)").find(pagination)?.groupValues?.get(1)?.toIntOrNull()
-
-private const val SEARCH_ITEM_START = "<li class=\"group__book\">"
-
-/** JSON such as `{"pagination":{"offset":0,"per_page":20,"total":51}}`, HTML-escaped. */
-private val PAGINATION = Regex("data-pagination=\"([^\"]*)\"")
+/** JSON such as `{"pagination":{"offset":0,"per_page":20,"total":51}}`. */
+private fun parsePagination(json: String): JSONObject? =
+    try {
+        JSONObject(json).optJSONObject("pagination")
+    } catch (e: JSONException) {
+        null
+    }

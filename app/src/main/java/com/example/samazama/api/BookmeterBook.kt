@@ -10,6 +10,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONException
 import org.json.JSONObject
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import java.io.IOException
 
 const val MAX_REVIEWS_PER_PAGE = 40
@@ -67,21 +69,24 @@ fun parseBookDetails(
     reviews: BookReviewPage = BookReviewPage(),
     stores: List<BookStore> = emptyList()
 ): BookDetails? {
-    val title = DETAILS_TITLE.findText(html) ?: return null
-    val imageUrl = DETAILS_COVER.findText(html) ?: return null
+    val document = Jsoup.parse(html)
+    val title = document.selectFirst("h1.inner__title")?.text()
+        ?.takeIf { it.isNotEmpty() } ?: return null
+    val imageUrl = document.selectFirst(".group__image img[src]")?.attr("src")
+        ?.takeIf { it.isNotEmpty() } ?: return null
     return BookDetails(
         id = id,
         title = title,
-        author = DETAILS_AUTHOR_LIST.find(html)?.groupValues?.get(1)?.let(::joinAuthorLinks).orEmpty(),
+        author = document.authorNames(".header__authors"),
         imageUrl = imageUrl,
-        format = DETAILS_FORMAT.findText(html),
-        publisher = DETAILS_PUBLISHER.findText(html),
-        registrationCount = DETAILS_REGISTRATION_COUNT.findInt(html),
-        pageCount = DETAILS_PAGE_COUNT.findInt(html),
-        reviewCount = DETAILS_REVIEW_COUNT.findInt(html),
-        trialUrl = DETAILS_TRIAL_URL.findText(html),
-        editions = html.split(EDITION_ITEM_START).drop(1)
-            .mapNotNull { parseEdition(it.substringBefore("</li>")) },
+        format = document.labelledText(".current-book-detail__binding-name", FORMAT_LABEL),
+        publisher = document.labelledText(".current-book-detail__publisher", PUBLISHER_LABEL),
+        registrationCount = document.detailCount("登録数"),
+        pageCount = document.detailCount("ページ数"),
+        reviewCount = document.selectFirst(".supplement__value.count")?.int(),
+        trialUrl = document.selectFirst("a.trial__btn[href]")?.attr("href")
+            ?.takeIf { it.isNotEmpty() },
+        editions = document.select("li.alternate-bindings-list__item").mapNotNull(::parseEdition),
         reviews = reviews,
         stores = stores
     )
@@ -133,38 +138,24 @@ private fun parseReview(review: JSONObject): BookReview? {
     )
 }
 
-private fun parseEdition(item: String): BookEdition? {
-    val id = EDITION_ID.findInt(item) ?: return null
+private fun parseEdition(item: Element): BookEdition? {
+    val id = item.bookId() ?: return null
     return BookEdition(
         id = id,
-        format = EDITION_FORMAT.findText(item),
-        publisher = EDITION_PUBLISHER.findText(item),
-        registrationCount = EDITION_REGISTRATION_COUNT.findInt(item)
+        format = item.labelledText(".registration-and-binding__binding-name", FORMAT_LABEL),
+        publisher = item.labelledText(
+            ".alternate-bindings__link__content__publisher",
+            PUBLISHER_LABEL
+        ),
+        registrationCount = item.selectFirst(".registration__counter")?.int()
     )
 }
 
-private fun Regex.findText(text: String): String? =
-    find(text)?.groupValues?.get(1)?.let { unescapeHtml(it).trim() }?.takeIf { it.isNotEmpty() }
+private fun Element.labelledText(selector: String, label: String): String? =
+    selectFirst(selector)?.text()?.removePrefix(label)?.trim()?.takeIf { it.isNotEmpty() }
 
-private fun Regex.findInt(text: String): Int? =
-    find(text)?.groupValues?.get(1)?.replace(",", "")?.toIntOrNull()
+private fun Element.detailCount(title: String): Int? =
+    selectFirst("dt.bm-details-side__title:containsOwn($title) + dd span")?.int()
 
-private const val EDITION_ITEM_START = "<li class=\"alternate-bindings-list__item\">"
-
-private val DETAILS_TITLE = Regex("class=\"inner__title\">(.*?)</h1>", RegexOption.DOT_MATCHES_ALL)
-private val DETAILS_AUTHOR_LIST =
-    Regex("class=\"header__authors\">(.*?)</ul>", RegexOption.DOT_MATCHES_ALL)
-private val DETAILS_COVER =
-    Regex("class=\"group__image\">.*?<img[^>]*\\ssrc=\"([^\"]*)\"", RegexOption.DOT_MATCHES_ALL)
-private val DETAILS_FORMAT = Regex("class=\"current-book-detail__binding-name\">形式：([^<]*)<")
-private val DETAILS_PUBLISHER = Regex("class=\"current-book-detail__publisher\">出版社：([^<]*)<")
-private val DETAILS_REGISTRATION_COUNT = Regex(">登録数</dt>\\s*<dd[^>]*>\\s*<span[^>]*>\\s*([\\d,]+)")
-private val DETAILS_PAGE_COUNT = Regex(">ページ数</dt>\\s*<dd[^>]*>\\s*<span[^>]*>\\s*([\\d,]+)")
-private val DETAILS_REVIEW_COUNT = Regex("class=\"supplement__value count\">\\s*([\\d,]+)")
-private val DETAILS_TRIAL_URL = Regex("class=\"trial__btn\"[^>]*\\shref=\"([^\"]*)\"")
-
-private val EDITION_ID = Regex("href=\"/books/(\\d+)\"")
-private val EDITION_FORMAT = Regex("class=\"registration-and-binding__binding-name\">形式：([^<]*)<")
-private val EDITION_PUBLISHER =
-    Regex("class=\"alternate-bindings__link__content__publisher\">出版社：([^<]*)<")
-private val EDITION_REGISTRATION_COUNT = Regex("class=\"registration__counter\">\\s*([\\d,]+)")
+private const val FORMAT_LABEL = "形式："
+private const val PUBLISHER_LABEL = "出版社："

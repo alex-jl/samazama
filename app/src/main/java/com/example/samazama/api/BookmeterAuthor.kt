@@ -5,6 +5,8 @@ import com.example.samazama.data.AuthorDetails
 import com.example.samazama.data.BookSearchPage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import java.io.IOException
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -31,45 +33,39 @@ suspend fun fetchAuthorBooks(name: String, page: Int = 1): BookSearchPage =
     parseSearchPage(fetchBookmeterPage(authorBooksUrl(name, page)))
 
 fun parseAuthorDetails(html: String, books: BookSearchPage = BookSearchPage()): AuthorDetails? {
-    val name = AUTHOR_NAME.find(html)?.groupValues?.get(1)?.let(::plainText)
+    val document = Jsoup.parse(html)
+    val name = document.selectFirst(".title__user")?.text()
         ?.takeIf { it.isNotEmpty() } ?: return null
-    val sidebar = html.substringAfter(AUTHOR_SIDEBAR_START, "")
+    val sidebar = document.selectFirst(".books.search.sidebar")
     return AuthorDetails(
         name = name,
-        profile = AUTHOR_PROFILE.find(sidebar)?.groupValues?.get(1)?.let(::plainText)
-            ?.takeIf { it.isNotEmpty() },
-        awards = AUTHOR_AWARD_LIST.find(sidebar)?.groupValues?.get(1)
-            ?.let { list -> AWARD_ITEM.findAll(list).mapNotNull { parseAward(it.groupValues[1]) } }
-            ?.toList().orEmpty(),
+        profile = sidebar?.selectFirst(".group__detail")?.let(::parseProfile),
+        awards = sidebar?.select(".list__awards li")?.mapNotNull(::parseAward).orEmpty(),
         books = books
     )
 }
 
-private fun parseAward(item: String): AuthorAward? {
-    val match = AWARD_WITH_BOOK.find(item)
-        ?: return plainText(item).takeIf { it.isNotEmpty() }?.let { AuthorAward(award = it) }
+private fun parseProfile(detail: Element): String? {
+    val paragraphs = detail.select("p").ifEmpty { listOf(detail) }
+    return paragraphs.map { it.wholeText().trim() }.filter { it.isNotEmpty() }
+        .joinToString("\n").takeIf { it.isNotEmpty() }
+}
+
+private fun parseAward(item: Element): AuthorAward? {
+    val text = item.text()
+    val match = AWARD_WITH_BOOK.find(text)
+        ?: return text.takeIf { it.isNotEmpty() }?.let { AuthorAward(award = it) }
     val (year, book, award) = match.destructured
     return AuthorAward(
-        award = plainText(award),
+        award = award.trim(),
         year = year.toIntOrNull(),
-        bookTitle = plainText(book).takeIf { it.isNotEmpty() },
-        bookAsin = AWARD_BOOK_ASIN.find(book)?.groupValues?.get(1)
+        bookTitle = book.trim().takeIf { it.isNotEmpty() },
+        bookAsin = item.selectFirst("a[href^=/b/]")?.attr("href")
+            ?.let { AWARD_BOOK_PATH.find(it)?.groupValues?.get(1) }
     )
 }
 
-private fun plainText(html: String): String =
-    unescapeHtml(html.replace(PARAGRAPH_BREAK, "\n").replace(TAG, "")).trim()
-
-private const val AUTHOR_SIDEBAR_START = "class=\"books search sidebar\""
-
 private val AUTHOR_PARAMETER = Regex("[?&]author=([^&#]*)")
-private val AUTHOR_NAME = Regex("class=\"title__user\">(.*?)</span>", RegexOption.DOT_MATCHES_ALL)
-private val AUTHOR_PROFILE = Regex("class=\"group__detail\">(.*?)</div>", RegexOption.DOT_MATCHES_ALL)
-private val AUTHOR_AWARD_LIST = Regex("class=\"list__awards\">(.*?)</ul>", RegexOption.DOT_MATCHES_ALL)
-private val AWARD_ITEM = Regex("<li>(.*?)</li>", RegexOption.DOT_MATCHES_ALL)
 
-private val AWARD_WITH_BOOK = Regex("^\\s*(\\d{4})?\\s*「(.*)」(.*)$", RegexOption.DOT_MATCHES_ALL)
-private val AWARD_BOOK_ASIN = Regex("href=\"/b/([^\"/?]+)\"")
-
-private val PARAGRAPH_BREAK = Regex("</p>\\s*<p[^>]*>|<br\\s*/?>")
-private val TAG = Regex("<[^>]*>")
+private val AWARD_WITH_BOOK = Regex("^(\\d{4})?\\s*「(.*)」(.*)$")
+private val AWARD_BOOK_PATH = Regex("^/b/([^/?#]+)")

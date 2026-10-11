@@ -1,6 +1,8 @@
 package com.example.samazama.api
 
 import com.example.samazama.data.Book
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 
 enum class RankingKind(internal val urlSegment: String) {
     READ_BOOK("read_book"),
@@ -31,42 +33,31 @@ suspend fun fetchRankings(
 ): List<Book> = parseRankingBooks(fetchBookmeterPage(rankingUrl(kind, format, period)))
 
 fun parseRankingBooks(html: String): List<Book> =
-    html.split(BOOK_ITEM_START).drop(1).mapNotNull { parseBook(it) }
+    Jsoup.parse(html).select("li.list__book").mapNotNull { parseBook(it) }
 
-private const val BOOK_ITEM_START = "<li class=\"list__book\">"
-
-private val BOOK_ID = Regex("/books/(\\d+)")
-private val COVER_IMAGE = Regex("<img[^>]*\\ssrc=\"([^\"]*)\"")
-private val COVER_TITLE = Regex("<img[^>]*\\salt=\"([^\"]*)\"")
-private val TITLE = Regex("class=\"detail__title\">\\s*<a[^>]*>(.*?)</a>", RegexOption.DOT_MATCHES_ALL)
-private val AUTHOR_LIST = Regex("class=\"detail__authors\">(.*?)</ul>", RegexOption.DOT_MATCHES_ALL)
-private val REGISTRATION_COUNT =
-    Regex("class=\"options__title\">登録</dt>\\s*<dd[^>]*>\\s*([\\d,]+)")
-private val AUTHOR = Regex("<a[^>]*>(.*?)</a>", RegexOption.DOT_MATCHES_ALL)
-
-internal fun parseBook(item: String, preferCoverTitle: Boolean = false): Book? {
-    val id = BOOK_ID.find(item)?.groupValues?.get(1)?.toIntOrNull() ?: return null
-    val coverTitle = if (preferCoverTitle) COVER_TITLE.find(item)?.groupValues?.get(1) else null
-    val title = (coverTitle?.takeIf { it.isNotBlank() } ?: TITLE.find(item)?.groupValues?.get(1))
-        ?.let { unescapeHtml(it).trim() } ?: return null
-    val imageUrl = COVER_IMAGE.find(item)?.groupValues?.get(1) ?: return null
+internal fun parseBook(item: Element, preferCoverTitle: Boolean = false): Book? {
+    val id = item.bookId() ?: return null
+    val cover = item.selectFirst("img[src]") ?: return null
+    val imageUrl = cover.attr("src").takeIf { it.isNotEmpty() } ?: return null
+    val coverTitle = if (preferCoverTitle) cover.attr("alt").trim() else ""
+    val title = coverTitle.ifEmpty { item.selectFirst(".detail__title a")?.text().orEmpty() }
+        .takeIf { it.isNotEmpty() } ?: return null
     return Book(
         id = id,
         title = title,
-        author = parseAuthors(item),
-        imageUrl = unescapeHtml(imageUrl),
-        registrationCount = REGISTRATION_COUNT.find(item)?.groupValues?.get(1)
-            ?.replace(",", "")?.toIntOrNull()
+        author = item.authorNames(".detail__authors"),
+        imageUrl = imageUrl,
+        registrationCount = item.selectFirst("dt.options__title:containsOwn(登録) + dd")?.int()
     )
 }
 
-private fun parseAuthors(item: String): String {
-    val authorList = AUTHOR_LIST.find(item)?.groupValues?.get(1) ?: return ""
-    return joinAuthorLinks(authorList)
-}
+internal fun Element.bookId(): Int? =
+    selectFirst("a[href*=/books/]")?.attr("href")
+        ?.let { BOOK_PATH.find(it)?.groupValues?.get(1)?.toIntOrNull() }
 
-internal fun joinAuthorLinks(authorList: String): String =
-    AUTHOR.findAll(authorList)
-        .map { unescapeHtml(it.groupValues[1]).trim() }
-        .filter { it.isNotEmpty() }
-        .joinToString(",")
+internal fun Element.authorNames(listSelector: String): String =
+    select("$listSelector a").map { it.text() }.filter { it.isNotEmpty() }.joinToString(",")
+
+internal fun Element.int(): Int? = text().replace(",", "").toIntOrNull()
+
+private val BOOK_PATH = Regex("/books/(\\d+)")
