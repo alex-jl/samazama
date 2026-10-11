@@ -35,6 +35,7 @@ import com.example.samazama.data.loadThemeMode
 import com.example.samazama.data.saveThemeMode
 import com.example.samazama.ui.AppNavigationBar
 import com.example.samazama.ui.AppTopBar
+import com.example.samazama.ui.AuthorDetailsScreen
 import com.example.samazama.ui.BookDetailsScreen
 import com.example.samazama.ui.BookRankingScreen
 import com.example.samazama.ui.HomeScreen
@@ -45,6 +46,7 @@ import com.example.samazama.ui.SearchScreen
 import com.example.samazama.ui.SettingsScreen
 import com.example.samazama.ui.TopBarSection
 import com.example.samazama.ui.theme.SamazamaTheme
+import java.io.Serializable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,6 +81,11 @@ private enum class Screen(@StringRes val titleRes: Int, val tab: NavTab?) {
     SETTINGS(R.string.settings, NavTab.SETTINGS),
 }
 
+private sealed interface Detail : Serializable {
+    data class Book(val id: Int) : Detail
+    data class Author(val name: String) : Detail
+}
+
 @Composable
 fun MyApp(
     themeMode: ThemeMode,
@@ -91,24 +98,31 @@ fun MyApp(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchKeyword by rememberSaveable { mutableStateOf<String?>(null) }
     var searchSubmission by rememberSaveable { mutableIntStateOf(0) }
-    var openBookIds by rememberSaveable { mutableStateOf(emptyList<Int>()) }
-    val bookOpen = openBookIds.isNotEmpty()
+    var openDetails by rememberSaveable { mutableStateOf(emptyList<Detail>()) }
+    val detailOpen = openDetails.isNotEmpty()
     val goHome = { screen = Screen.HOME }
-    val openBook = { id: Int -> openBookIds = openBookIds + id }
-    val closeBook = { openBookIds = openBookIds.dropLast(1) }
+    val openBook = { id: Int -> openDetails = openDetails + Detail.Book(id) }
+    val openAuthor = { name: String -> openDetails = openDetails + Detail.Author(name) }
+    val closeDetail = { openDetails = openDetails.dropLast(1) }
 
     BackHandler(enabled = screen != Screen.HOME, onBack = goHome)
-    BackHandler(enabled = bookOpen, onBack = closeBook)
+    BackHandler(enabled = detailOpen, onBack = closeDetail)
 
     Scaffold(
         modifier = modifier,
         topBar = {
             AppTopBar(
-                title = stringResource(if (bookOpen) R.string.book_details else screen.titleRes),
-                showBackButton = bookOpen || screen != Screen.HOME,
-                onBackClick = if (bookOpen) closeBook else goHome,
+                title = stringResource(
+                    when (openDetails.lastOrNull()) {
+                        is Detail.Book -> R.string.book_details
+                        is Detail.Author -> R.string.author_details
+                        null -> screen.titleRes
+                    }
+                ),
+                showBackButton = detailOpen || screen != Screen.HOME,
+                onBackClick = if (detailOpen) closeDetail else goHome,
                 sections = {
-                    TopBarSection(visible = screen == Screen.RANKINGS && !bookOpen) {
+                    TopBarSection(visible = screen == Screen.RANKINGS && !detailOpen) {
                         RankingFilters(
                             format = rankingFormat,
                             period = rankingPeriod,
@@ -116,7 +130,7 @@ fun MyApp(
                             onPeriodChange = { rankingPeriod = it }
                         )
                     }
-                    TopBarSection(visible = screen == Screen.SEARCH && !bookOpen) {
+                    TopBarSection(visible = screen == Screen.SEARCH && !detailOpen) {
                         SearchField(
                             query = searchQuery,
                             onQueryChange = { searchQuery = it },
@@ -135,7 +149,7 @@ fun MyApp(
             AppNavigationBar(
                 selected = screen.tab,
                 onSelect = { tab ->
-                    openBookIds = emptyList()
+                    openDetails = emptyList()
                     screen = when (tab) {
                         NavTab.HOME -> Screen.HOME
                         NavTab.SEARCH -> Screen.SEARCH
@@ -148,7 +162,7 @@ fun MyApp(
         Box(modifier = Modifier.padding(innerPadding)) {
             AnimatedContent(
                 targetState = screen,
-                modifier = if (bookOpen) Modifier.clearAndSetSemantics {} else Modifier
+                modifier = if (detailOpen) Modifier.clearAndSetSemantics {} else Modifier
             ) { target ->
                 when (target) {
                     Screen.HOME -> HomeScreen(
@@ -168,14 +182,23 @@ fun MyApp(
                     Screen.SETTINGS -> SettingsScreen(themeMode, onThemeModeChange)
                 }
             }
-            AnimatedVisibility(visible = bookOpen, enter = fadeIn(), exit = fadeOut()) {
+            AnimatedVisibility(visible = detailOpen, enter = fadeIn(), exit = fadeOut()) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AnimatedContent(targetState = openBookIds.lastOrNull()) { bookId ->
-                        if (bookId != null) {
-                            BookDetailsScreen(bookId, onEditionClick = openBook)
+                    AnimatedContent(targetState = openDetails.lastOrNull()) { detail ->
+                        when (detail) {
+                            is Detail.Book -> BookDetailsScreen(
+                                detail.id,
+                                onEditionClick = openBook,
+                                onAuthorClick = openAuthor
+                            )
+                            is Detail.Author -> AuthorDetailsScreen(
+                                detail.name,
+                                onBookClick = { openBook(it.id) }
+                            )
+                            null -> Unit
                         }
                     }
                 }

@@ -36,6 +36,13 @@
     <string name="book_details">Book details</string>
     <string name="loading_book">Loading book...</string>
     <string name="failed_to_load_book">Unable to load the book.</string>
+    <string name="author_details">Author</string>
+    <string name="loading_author">Loading author...</string>
+    <string name="failed_to_load_author">Unable to load the author.</string>
+    <string name="view_author">View author</string>
+    <string name="profile">Profile</string>
+    <string name="awards">Awards</string>
+    <string name="books_with_count">Books (%1$s)</string>
     <string name="links">Links</string>
     <string name="read_sample">Read a sample</string>
     <string name="other_editions">Other editions</string>

@@ -4,6 +4,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import androidx.annotation.PluralsRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -83,6 +84,7 @@ private data class BookLink(val label: String, val url: String)
 fun BookDetailsScreen(
     bookId: Int,
     onEditionClick: (Int) -> Unit,
+    onAuthorClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var retryCount by rememberSaveable { mutableIntStateOf(0) }
@@ -102,7 +104,7 @@ fun BookDetailsScreen(
         when (val result = details) {
             null -> LoadingScreen(stringResource(R.string.loading_book))
             else -> result.fold(
-                onSuccess = { LoadedBookDetails(it, onEditionClick) },
+                onSuccess = { LoadedBookDetails(it, onEditionClick, onAuthorClick) },
                 onFailure = {
                     ErrorScreen(
                         message = stringResource(R.string.failed_to_load_book),
@@ -115,7 +117,11 @@ fun BookDetailsScreen(
 }
 
 @Composable
-private fun LoadedBookDetails(details: BookDetails, onEditionClick: (Int) -> Unit) {
+private fun LoadedBookDetails(
+    details: BookDetails,
+    onEditionClick: (Int) -> Unit,
+    onAuthorClick: (String) -> Unit
+) {
     val scope = rememberCoroutineScope()
     var reviews by remember(details) { mutableStateOf(details.reviews.reviews) }
     var lastPage by remember(details) { mutableStateOf(details.reviews) }
@@ -149,7 +155,8 @@ private fun LoadedBookDetails(details: BookDetails, onEditionClick: (Int) -> Uni
                 }
             }
         },
-        onEditionClick = onEditionClick
+        onEditionClick = onEditionClick,
+        onAuthorClick = onAuthorClick
     )
 }
 
@@ -161,12 +168,13 @@ private fun BookDetailsContent(
     loadingMoreReviews: Boolean,
     onLoadMoreReviews: () -> Unit,
     onEditionClick: (Int) -> Unit,
+    onAuthorClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val numberFormat = remember { NumberFormat.getIntegerInstance() }
 
     LazyColumn(modifier = modifier.fillMaxSize()) {
-        item { BookHeader(details) }
+        item { BookHeader(details, onAuthorClick) }
         if (details.editions.isNotEmpty()) {
             item { SectionHeader(stringResource(R.string.other_editions)) }
             item { EditionGrid(details.editions, onEditionClick) }
@@ -220,7 +228,11 @@ private fun BookDetailsContent(
 }
 
 @Composable
-private fun BookHeader(details: BookDetails, modifier: Modifier = Modifier) {
+private fun BookHeader(
+    details: BookDetails,
+    onAuthorClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Row(modifier = modifier.padding(EdgePadding)) {
         AsyncImage(
             model = details.imageUrl,
@@ -244,12 +256,24 @@ private fun BookHeader(details: BookDetails, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            if (details.author.isNotEmpty()) {
-                Text(
-                    text = details.author,
+            val authors = details.author.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            if (authors.isNotEmpty()) {
+                FlowRow(
                     modifier = Modifier.padding(top = 4.dp),
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    authors.forEach { author ->
+                        Text(
+                            text = author,
+                            modifier = Modifier.clickable(
+                                onClickLabel = stringResource(R.string.view_author),
+                                onClick = { onAuthorClick(author) }
+                            ),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
             }
             FlowRow(
                 modifier = Modifier.padding(top = 12.dp),
@@ -494,7 +518,8 @@ private fun BookDetailsContentPreview() {
             hasMoreReviews = true,
             loadingMoreReviews = false,
             onLoadMoreReviews = {},
-            onEditionClick = {}
+            onEditionClick = {},
+            onAuthorClick = {}
         )
     }
 }
