@@ -263,7 +263,7 @@ private fun BookHeader(details: BookDetails, modifier: Modifier = Modifier) {
                 if (details.publisher != null) {
                     InfoChip(details.publisher, icon = enterprise)
                 }
-                if (details.pageCount != null) {
+                if (details.pageCount != null && details.pageCount > 0) {
                     InfoChip(
                         text = pluralStringResource(
                             R.plurals.page_count,
