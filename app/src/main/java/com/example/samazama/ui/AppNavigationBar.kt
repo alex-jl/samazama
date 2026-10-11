@@ -12,11 +12,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.example.samazama.R
 import com.example.samazama.ui.icons.home
+import com.example.samazama.ui.icons.person
 import com.example.samazama.ui.icons.search
 import com.example.samazama.ui.icons.settings
 
 enum class NavTab(@StringRes internal val labelRes: Int) {
     HOME(R.string.home),
+    PROFILE(R.string.profile),
     SEARCH(R.string.search),
     SETTINGS(R.string.settings),
 }
@@ -24,6 +26,7 @@ enum class NavTab(@StringRes internal val labelRes: Int) {
 private val NavTab.icon: ImageVector
     get() = when (this) {
         NavTab.HOME -> home
+        NavTab.PROFILE -> person
         NavTab.SEARCH -> search
         NavTab.SETTINGS -> settings
     }

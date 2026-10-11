@@ -27,6 +27,7 @@ import com.example.samazama.ui.theme.SamazamaTheme
 
 @Composable
 fun HomeScreen(
+    onProfileClick: () -> Unit,
     onRankingsClick: () -> Unit,
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -38,6 +39,8 @@ fun HomeScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
+        SectionHeader(stringResource(R.string.my_books))
+        SectionLink(stringResource(R.string.profile), onClick = onProfileClick)
         SectionHeader(stringResource(R.string.discover))
         SectionLink(stringResource(R.string.rankings), onClick = onRankingsClick)
         SectionLink(stringResource(R.string.search), onClick = onSearchClick)
@@ -85,6 +88,6 @@ private fun SectionLink(
 @Composable
 private fun HomeScreenPreview() {
     SamazamaTheme {
-        HomeScreen(onRankingsClick = {}, onSearchClick = {})
+        HomeScreen(onProfileClick = {}, onRankingsClick = {}, onSearchClick = {})
     }
 }

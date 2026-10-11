@@ -3,6 +3,8 @@
     <string name="show_less">Show less</string>
     <string name="show_more">Show more</string>
     <string name="view_book">View book</string>
+    <string name="my_books">My Books</string>
+    <string name="profile_placeholder">Your profile will appear here.</string>
     <string name="discover">Discover</string>
     <string name="rankings">Rankings</string>
     <string name="about_unofficial">%1$s is an unofficial client for Bookmeter (読書メーター). It is not affiliated with or endorsed by Bookmeter.</string>

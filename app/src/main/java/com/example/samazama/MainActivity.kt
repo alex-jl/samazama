@@ -40,6 +40,7 @@ import com.example.samazama.ui.BookDetailsScreen
 import com.example.samazama.ui.BookRankingScreen
 import com.example.samazama.ui.HomeScreen
 import com.example.samazama.ui.NavTab
+import com.example.samazama.ui.ProfileScreen
 import com.example.samazama.ui.RankingFilters
 import com.example.samazama.ui.SearchField
 import com.example.samazama.ui.SearchScreen
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
 private enum class Screen(@StringRes val titleRes: Int, val tab: NavTab?) {
     HOME(R.string.home, NavTab.HOME),
     RANKINGS(R.string.rankings, null),
+    PROFILE(R.string.profile, NavTab.PROFILE),
     SEARCH(R.string.search, NavTab.SEARCH),
     SETTINGS(R.string.settings, NavTab.SETTINGS),
 }
@@ -152,6 +154,7 @@ fun MyApp(
                     openDetails = emptyList()
                     screen = when (tab) {
                         NavTab.HOME -> Screen.HOME
+                        NavTab.PROFILE -> Screen.PROFILE
                         NavTab.SEARCH -> Screen.SEARCH
                         NavTab.SETTINGS -> Screen.SETTINGS
                     }
@@ -166,6 +169,7 @@ fun MyApp(
             ) { target ->
                 when (target) {
                     Screen.HOME -> HomeScreen(
+                        onProfileClick = { screen = Screen.PROFILE },
                         onRankingsClick = { screen = Screen.RANKINGS },
                         onSearchClick = { screen = Screen.SEARCH }
                     )
@@ -179,6 +183,7 @@ fun MyApp(
                         searchSubmission,
                         onBookClick = { openBook(it.id) }
                     )
+                    Screen.PROFILE -> ProfileScreen()
                     Screen.SETTINGS -> SettingsScreen(themeMode, onThemeModeChange)
                 }
             }
