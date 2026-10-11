@@ -1,15 +1,9 @@
 package com.example.samazama.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,8 +24,7 @@ import com.example.samazama.R
 @Composable
 fun AppTopBar(
     title: String,
-    showBackButton: Boolean,
-    onBackClick: () -> Unit,
+    onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     sections: @Composable ColumnScope.() -> Unit = {}
 ) {
@@ -42,15 +35,9 @@ fun AppTopBar(
                     containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
-                title = {
-                    Crossfade(targetState = title) { Text(text = it) }
-                },
+                title = { Text(text = title) },
                 navigationIcon = {
-                    AnimatedVisibility(
-                        visible = showBackButton,
-                        enter = fadeIn() + expandHorizontally(),
-                        exit = fadeOut() + shrinkHorizontally()
-                    ) {
+                    if (onBackClick != null) {
                         IconButton(onClick = onBackClick) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
@@ -66,12 +53,17 @@ fun AppTopBar(
 }
 
 @Composable
-fun ColumnScope.TopBarSection(visible: Boolean, content: @Composable () -> Unit) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically()
-    ) {
-        content()
+internal fun AppScreen(
+    title: String,
+    onBackClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+    topBarSections: @Composable ColumnScope.() -> Unit = {},
+    content: @Composable () -> Unit
+) {
+    Column(modifier = modifier.fillMaxSize()) {
+        AppTopBar(title = title, onBackClick = onBackClick, sections = topBarSections)
+        Box(modifier = Modifier.weight(1f)) {
+            content()
+        }
     }
 }

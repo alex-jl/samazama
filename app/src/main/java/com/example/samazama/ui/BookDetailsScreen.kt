@@ -1,7 +1,6 @@
 package com.example.samazama.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.util.Log
 import androidx.annotation.PluralsRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,11 +36,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,8 +55,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.samazama.R
-import com.example.samazama.api.fetchBookDetails
-import com.example.samazama.api.fetchBookReviews
 import com.example.samazama.data.BookDetails
 import com.example.samazama.data.BookEdition
 import com.example.samazama.data.BookReview
@@ -69,8 +63,6 @@ import com.example.samazama.ui.icons.category
 import com.example.samazama.ui.icons.enterprise
 import com.example.samazama.ui.icons.open_in_new
 import com.example.samazama.ui.icons.two_pager
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
 import java.text.NumberFormat
 
 private val EdgePadding = 16.dp
@@ -82,82 +74,40 @@ private data class BookLink(val label: String, val url: String)
 
 @Composable
 fun BookDetailsScreen(
-    bookId: Int,
+    viewModel: BookDetailsViewModel,
+    onBackClick: () -> Unit,
     onEditionClick: (Int) -> Unit,
     onAuthorClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var retryCount by rememberSaveable { mutableIntStateOf(0) }
-    val details by produceState<Result<BookDetails>?>(initialValue = null, bookId, retryCount) {
-        value = null
-        value = try {
-            Result.success(fetchBookDetails(bookId))
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Log.e("BookDetailsScreen", "Failed to load book: ${e::class.qualifiedName}: ${e.message}")
-            Result.failure(e)
-        }
-    }
-
-    Box(modifier = modifier.fillMaxSize()) {
-        when (val result = details) {
+    AppScreen(
+        title = stringResource(R.string.book_details),
+        onBackClick = onBackClick,
+        modifier = modifier
+    ) {
+        when (val result = viewModel.details) {
             null -> LoadingScreen(stringResource(R.string.loading_book))
             else -> result.fold(
-                onSuccess = { LoadedBookDetails(it, onEditionClick, onAuthorClick) },
+                onSuccess = {
+                    BookDetailsContent(
+                        details = it,
+                        reviews = viewModel.reviews,
+                        hasMoreReviews = viewModel.hasMoreReviews,
+                        loadingMoreReviews = viewModel.loadingMoreReviews,
+                        onLoadMoreReviews = viewModel::loadMoreReviews,
+                        onEditionClick = onEditionClick,
+                        onAuthorClick = onAuthorClick
+                    )
+                },
                 onFailure = {
                     ErrorScreen(
                         message = stringResource(R.string.failed_to_load_book),
-                        onRetry = { retryCount++ }
+                        onRetry = viewModel::retry
                     )
                 }
             )
         }
     }
-}
-
-@Composable
-private fun LoadedBookDetails(
-    details: BookDetails,
-    onEditionClick: (Int) -> Unit,
-    onAuthorClick: (String) -> Unit
-) {
-    val scope = rememberCoroutineScope()
-    var reviews by remember(details) { mutableStateOf(details.reviews.reviews) }
-    var lastPage by remember(details) { mutableStateOf(details.reviews) }
-    var loadingMore by remember(details) { mutableStateOf(false) }
-
-    BookDetailsContent(
-        details = details,
-        reviews = reviews,
-        hasMoreReviews = lastPage.hasNextPage,
-        loadingMoreReviews = loadingMore,
-        onLoadMoreReviews = {
-            loadingMore = true
-            scope.launch {
-                try {
-                    val page = fetchBookReviews(
-                        details.id,
-                        offset = lastPage.offset + lastPage.reviews.size
-                    )
-                    val known = reviews.mapTo(HashSet()) { it.id }
-                    reviews = reviews + page.reviews.filter { it.id !in known }
-                    lastPage = page
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.e(
-                        "BookDetailsScreen",
-                        "Failed to load reviews: ${e::class.qualifiedName}: ${e.message}"
-                    )
-                } finally {
-                    loadingMore = false
-                }
-            }
-        },
-        onEditionClick = onEditionClick,
-        onAuthorClick = onAuthorClick
-    )
 }
 
 @Composable

@@ -1,7 +1,6 @@
 package com.example.samazama.ui
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,11 +22,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,37 +33,35 @@ import androidx.compose.ui.unit.dp
 import com.example.samazama.R
 import com.example.samazama.api.BookFormat
 import com.example.samazama.api.RankingPeriod
-import com.example.samazama.api.fetchRankings
 import com.example.samazama.data.Book
 import com.example.samazama.data.sampleBooks
-import kotlinx.coroutines.CancellationException
 
 @Composable
 fun BookRankingScreen(
-    format: BookFormat,
-    period: RankingPeriod,
+    viewModel: BookRankingViewModel,
+    onBackClick: () -> Unit,
     onBookClick: (Book) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var retryCount by rememberSaveable { mutableIntStateOf(0) }
-    val rankings by produceState<Result<List<Book>>?>(initialValue = null, format, period, retryCount) {
-        value = null
-        value = try {
-            Result.success(fetchRankings(format = format, period = period))
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Log.e("BookRankingScreen", "Failed to load rankings: ${e::class.qualifiedName}: ${e.message}")
-            Result.failure(e)
+    AppScreen(
+        title = stringResource(R.string.rankings),
+        onBackClick = onBackClick,
+        modifier = modifier,
+        topBarSections = {
+            RankingFilters(
+                format = viewModel.format,
+                period = viewModel.period,
+                onFormatChange = viewModel::selectFormat,
+                onPeriodChange = viewModel::selectPeriod
+            )
         }
+    ) {
+        BookRankingContent(
+            rankings = viewModel.rankings,
+            onBookClick = onBookClick,
+            onRetry = viewModel::retry
+        )
     }
-
-    BookRankingContent(
-        rankings = rankings,
-        onBookClick = onBookClick,
-        onRetry = { retryCount++ },
-        modifier = modifier
-    )
 }
 
 @Composable

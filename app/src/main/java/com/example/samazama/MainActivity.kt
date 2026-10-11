@@ -2,52 +2,53 @@ package com.example.samazama
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.samazama.api.BookFormat
-import com.example.samazama.api.RankingPeriod
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.samazama.data.ThemeMode
 import com.example.samazama.data.loadThemeMode
 import com.example.samazama.data.saveThemeMode
 import com.example.samazama.ui.AppNavigationBar
-import com.example.samazama.ui.AppTopBar
 import com.example.samazama.ui.AuthorDetailsScreen
+import com.example.samazama.ui.AuthorRoute
 import com.example.samazama.ui.BookDetailsScreen
 import com.example.samazama.ui.BookRankingScreen
+import com.example.samazama.ui.BookRoute
+import com.example.samazama.ui.HomeRoute
 import com.example.samazama.ui.HomeScreen
 import com.example.samazama.ui.NavTab
+import com.example.samazama.ui.ProfileRoute
 import com.example.samazama.ui.ProfileScreen
-import com.example.samazama.ui.RankingFilters
-import com.example.samazama.ui.SearchField
+import com.example.samazama.ui.RankingsRoute
+import com.example.samazama.ui.SearchRoute
 import com.example.samazama.ui.SearchScreen
+import com.example.samazama.ui.SettingsRoute
 import com.example.samazama.ui.SettingsScreen
-import com.example.samazama.ui.TopBarSection
 import com.example.samazama.ui.theme.SamazamaTheme
-import java.io.Serializable
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,18 +76,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Screen(@StringRes val titleRes: Int, val tab: NavTab?) {
-    HOME(R.string.home, NavTab.HOME),
-    RANKINGS(R.string.rankings, null),
-    PROFILE(R.string.profile, NavTab.PROFILE),
-    SEARCH(R.string.search, NavTab.SEARCH),
-    SETTINGS(R.string.settings, NavTab.SETTINGS),
-}
-
-private sealed interface Detail : Serializable {
-    data class Book(val id: Int) : Detail
-    data class Author(val name: String) : Detail
-}
+private const val TRANSITION_MILLIS = 200
 
 @Composable
 fun MyApp(
@@ -94,123 +84,114 @@ fun MyApp(
     onThemeModeChange: (ThemeMode) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
-    var rankingFormat by rememberSaveable { mutableStateOf(BookFormat.BUNKO) }
-    var rankingPeriod by rememberSaveable { mutableStateOf(RankingPeriod.MONTH) }
-    var searchQuery by rememberSaveable { mutableStateOf("") }
-    var searchKeyword by rememberSaveable { mutableStateOf<String?>(null) }
-    var searchSubmission by rememberSaveable { mutableIntStateOf(0) }
-    var openDetails by rememberSaveable { mutableStateOf(emptyList<Detail>()) }
-    val detailOpen = openDetails.isNotEmpty()
-    val goHome = { screen = Screen.HOME }
-    val openBook = { id: Int -> openDetails = openDetails + Detail.Book(id) }
-    val openAuthor = { name: String -> openDetails = openDetails + Detail.Author(name) }
-    val closeDetail = { openDetails = openDetails.dropLast(1) }
+    val navController = rememberNavController()
+    val currentEntry by navController.currentBackStackEntryAsState()
+    val selectedTab = remember(currentEntry) {
+        if (currentEntry == null) NavTab.HOME else navController.selectedTab()
+    }
+    // The rankings and search keep their state for as long as the app is open,
+    // rather than only while they are on the back stack.
+    val appScope = LocalViewModelStoreOwner.current
 
-    BackHandler(enabled = screen != Screen.HOME, onBack = goHome)
-    BackHandler(enabled = detailOpen, onBack = closeDetail)
+    val goBack: () -> Unit = {
+        if (navController.previousBackStackEntry != null) navController.popBackStack()
+    }
+    val goHome = { navController.popBackStack<HomeRoute>(inclusive = false) }
+    val openTab = { route: Any ->
+        navController.navigate(route) {
+            popUpTo<HomeRoute>()
+            launchSingleTop = true
+        }
+    }
+    val openBook = { id: Int -> navController.navigate(BookRoute(id)) }
+    val openAuthor = { name: String -> navController.navigate(AuthorRoute(name)) }
 
     Scaffold(
         modifier = modifier,
-        topBar = {
-            AppTopBar(
-                title = stringResource(
-                    when (openDetails.lastOrNull()) {
-                        is Detail.Book -> R.string.book_details
-                        is Detail.Author -> R.string.author_details
-                        null -> screen.titleRes
-                    }
-                ),
-                showBackButton = detailOpen || screen != Screen.HOME,
-                onBackClick = if (detailOpen) closeDetail else goHome,
-                sections = {
-                    TopBarSection(visible = screen == Screen.RANKINGS && !detailOpen) {
-                        RankingFilters(
-                            format = rankingFormat,
-                            period = rankingPeriod,
-                            onFormatChange = { rankingFormat = it },
-                            onPeriodChange = { rankingPeriod = it }
-                        )
-                    }
-                    TopBarSection(visible = screen == Screen.SEARCH && !detailOpen) {
-                        SearchField(
-                            query = searchQuery,
-                            onQueryChange = { searchQuery = it },
-                            onSearch = {
-                                if (searchQuery.isNotBlank()) {
-                                    searchKeyword = searchQuery.trim()
-                                    searchSubmission++
-                                }
-                            }
-                        )
+        bottomBar = {
+            AppNavigationBar(
+                selected = selectedTab,
+                onSelect = { tab ->
+                    when (tab) {
+                        NavTab.HOME -> goHome()
+                        NavTab.PROFILE -> openTab(ProfileRoute)
+                        NavTab.SEARCH -> openTab(SearchRoute)
+                        NavTab.SETTINGS -> openTab(SettingsRoute)
                     }
                 }
             )
         },
-        bottomBar = {
-            AppNavigationBar(
-                selected = screen.tab,
-                onSelect = { tab ->
-                    openDetails = emptyList()
-                    screen = when (tab) {
-                        NavTab.HOME -> Screen.HOME
-                        NavTab.PROFILE -> Screen.PROFILE
-                        NavTab.SEARCH -> Screen.SEARCH
-                        NavTab.SETTINGS -> Screen.SETTINGS
-                    }
-                }
-            )
-        }
+        // Each screen's top bar handles the status bar itself.
+        contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            AnimatedContent(
-                targetState = screen,
-                modifier = if (detailOpen) Modifier.clearAndSetSemantics {} else Modifier
-            ) { target ->
-                when (target) {
-                    Screen.HOME -> HomeScreen(
-                        onProfileClick = { screen = Screen.PROFILE },
-                        onRankingsClick = { screen = Screen.RANKINGS },
-                        onSearchClick = { screen = Screen.SEARCH }
-                    )
-                    Screen.RANKINGS -> BookRankingScreen(
-                        rankingFormat,
-                        rankingPeriod,
-                        onBookClick = { openBook(it.id) }
-                    )
-                    Screen.SEARCH -> SearchScreen(
-                        searchKeyword,
-                        searchSubmission,
-                        onBookClick = { openBook(it.id) }
-                    )
-                    Screen.PROFILE -> ProfileScreen()
-                    Screen.SETTINGS -> SettingsScreen(themeMode, onThemeModeChange)
-                }
+        NavHost(
+            navController = navController,
+            startDestination = HomeRoute,
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = { fadeIn(tween(TRANSITION_MILLIS)) },
+            exitTransition = { fadeOut(tween(TRANSITION_MILLIS)) }
+        ) {
+            composable<HomeRoute> {
+                HomeScreen(
+                    onProfileClick = { openTab(ProfileRoute) },
+                    onRankingsClick = { navController.navigate(RankingsRoute) },
+                    onSearchClick = { openTab(SearchRoute) }
+                )
             }
-            AnimatedVisibility(visible = detailOpen, enter = fadeIn(), exit = fadeOut()) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    AnimatedContent(targetState = openDetails.lastOrNull()) { detail ->
-                        when (detail) {
-                            is Detail.Book -> BookDetailsScreen(
-                                detail.id,
-                                onEditionClick = openBook,
-                                onAuthorClick = openAuthor
-                            )
-                            is Detail.Author -> AuthorDetailsScreen(
-                                detail.name,
-                                onBookClick = { openBook(it.id) }
-                            )
-                            null -> Unit
-                        }
-                    }
-                }
+            composable<RankingsRoute> {
+                BookRankingScreen(
+                    viewModel = viewModel(viewModelStoreOwner = checkNotNull(appScope)),
+                    onBackClick = goBack,
+                    onBookClick = { openBook(it.id) }
+                )
+            }
+            composable<ProfileRoute> {
+                ProfileScreen(onBackClick = goBack)
+            }
+            composable<SearchRoute> {
+                SearchScreen(
+                    viewModel = viewModel(viewModelStoreOwner = checkNotNull(appScope)),
+                    onBackClick = goBack,
+                    onBookClick = { openBook(it.id) }
+                )
+            }
+            composable<SettingsRoute> {
+                SettingsScreen(themeMode, onThemeModeChange, onBackClick = goBack)
+            }
+            composable<BookRoute> {
+                BookDetailsScreen(
+                    viewModel = viewModel(),
+                    onBackClick = goBack,
+                    onEditionClick = openBook,
+                    onAuthorClick = openAuthor
+                )
+            }
+            composable<AuthorRoute> {
+                AuthorDetailsScreen(
+                    viewModel = viewModel(),
+                    onBackClick = goBack,
+                    onBookClick = { openBook(it.id) }
+                )
             }
         }
     }
 }
+
+private fun NavController.selectedTab(): NavTab? = when {
+    isOnBackStack<ProfileRoute>() -> NavTab.PROFILE
+    isOnBackStack<SearchRoute>() -> NavTab.SEARCH
+    isOnBackStack<SettingsRoute>() -> NavTab.SETTINGS
+    isOnBackStack<RankingsRoute>() -> null
+    else -> NavTab.HOME
+}
+
+private inline fun <reified T : Any> NavController.isOnBackStack(): Boolean =
+    try {
+        getBackStackEntry<T>()
+        true
+    } catch (e: IllegalArgumentException) {
+        false
+    }
 
 @Preview(widthDp = 320)
 @Composable

@@ -13,8 +13,12 @@ import com.example.samazama.R
 import com.example.samazama.ui.theme.SamazamaTheme
 
 @Composable
-fun ProfileScreen(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun ProfileScreen(onBackClick: () -> Unit, modifier: Modifier = Modifier) = AppScreen(
+    title = stringResource(R.string.profile),
+    onBackClick = onBackClick,
+    modifier = modifier
+) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(
             text = stringResource(R.string.profile_placeholder),
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -26,6 +30,6 @@ fun ProfileScreen(modifier: Modifier = Modifier) {
 @Composable
 private fun ProfileScreenPreview() {
     SamazamaTheme {
-        ProfileScreen()
+        ProfileScreen(onBackClick = {})
     }
 }

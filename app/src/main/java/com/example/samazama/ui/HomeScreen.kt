@@ -31,11 +31,15 @@ fun HomeScreen(
     onRankingsClick: () -> Unit,
     onSearchClick: () -> Unit,
     modifier: Modifier = Modifier
+) = AppScreen(
+    title = stringResource(R.string.home),
+    onBackClick = null,
+    modifier = modifier
 ) {
     val uriHandler = LocalUriHandler.current
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {

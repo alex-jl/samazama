@@ -28,10 +28,15 @@ import com.example.samazama.ui.theme.SamazamaTheme
 fun SettingsScreen(
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
+    onBackClick: () -> Unit,
     modifier: Modifier = Modifier
+) = AppScreen(
+    title = stringResource(R.string.settings),
+    onBackClick = onBackClick,
+    modifier = modifier
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
@@ -72,6 +77,6 @@ private val ThemeMode.labelRes: Int
 @Composable
 private fun SettingsScreenPreview() {
     SamazamaTheme {
-        SettingsScreen(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {})
+        SettingsScreen(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {}, onBackClick = {})
     }
 }
