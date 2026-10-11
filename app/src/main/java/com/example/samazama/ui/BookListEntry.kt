@@ -38,7 +38,7 @@ import coil3.compose.AsyncImage
 import com.example.samazama.R
 import com.example.samazama.data.Book
 import com.example.samazama.data.sampleBooks
-import com.example.samazama.icon.bookmarks
+import com.example.samazama.ui.icons.bookmarks
 import java.text.NumberFormat
 
 private val EdgePadding = 16.dp

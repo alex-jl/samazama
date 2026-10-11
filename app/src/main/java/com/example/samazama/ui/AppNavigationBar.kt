@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.example.samazama.R
-import com.example.samazama.icon.home
-import com.example.samazama.icon.search
-import com.example.samazama.icon.settings
+import com.example.samazama.ui.icons.home
+import com.example.samazama.ui.icons.search
+import com.example.samazama.ui.icons.settings
 
 enum class NavTab(@StringRes internal val labelRes: Int) {
     HOME(R.string.home),

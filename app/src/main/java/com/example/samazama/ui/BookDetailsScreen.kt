@@ -67,10 +67,10 @@ import com.example.samazama.data.BookDetails
 import com.example.samazama.data.BookEdition
 import com.example.samazama.data.BookReview
 import com.example.samazama.data.sampleBookDetails
-import com.example.samazama.icon.category
-import com.example.samazama.icon.enterprise
-import com.example.samazama.icon.open_in_new
-import com.example.samazama.icon.two_pager
+import com.example.samazama.ui.icons.category
+import com.example.samazama.ui.icons.enterprise
+import com.example.samazama.ui.icons.open_in_new
+import com.example.samazama.ui.icons.two_pager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.text.NumberFormat

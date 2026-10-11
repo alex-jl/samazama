@@ -44,8 +44,8 @@ import com.example.samazama.api.searchBooks
 import com.example.samazama.data.Book
 import com.example.samazama.data.BookSearchPage
 import com.example.samazama.data.sampleBooks
-import com.example.samazama.icon.close
-import com.example.samazama.icon.search
+import com.example.samazama.ui.icons.close
+import com.example.samazama.ui.icons.search
 import kotlinx.coroutines.CancellationException
 
 @Composable

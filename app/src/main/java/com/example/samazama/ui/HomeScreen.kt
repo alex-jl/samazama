@@ -18,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.samazama.R
-import com.example.samazama.icon.chevron_right
+import com.example.samazama.ui.icons.chevron_right
 import com.example.samazama.ui.theme.SamazamaTheme
 
 @Composable
