@@ -62,8 +62,11 @@ internal fun parseBook(item: String, preferCoverTitle: Boolean = false): Book? {
 
 private fun parseAuthors(item: String): String {
     val authorList = AUTHOR_LIST.find(item)?.groupValues?.get(1) ?: return ""
-    return AUTHOR.findAll(authorList)
+    return joinAuthorLinks(authorList)
+}
+
+internal fun joinAuthorLinks(authorList: String): String =
+    AUTHOR.findAll(authorList)
         .map { unescapeHtml(it.groupValues[1]).trim() }
         .filter { it.isNotEmpty() }
         .joinToString(",")
-}
