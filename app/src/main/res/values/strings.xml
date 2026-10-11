@@ -3,7 +3,8 @@
     <string name="show_less">Show less</string>
     <string name="show_more">Show more</string>
     <string name="view_book">View book</string>
-    <string name="my_books">My Books</string>
+    <string name="log_in_prompt">Log in to track your own books.</string>
+    <string name="failed_to_load_profile">Unable to load your profile.</string>
     <string name="account">Account</string>
     <string name="loading_account">Loading account...</string>
     <string name="failed_to_load_account">Unable to load the account page.</string>
@@ -17,7 +18,10 @@
     <string name="checking_login">Checking login...</string>
     <string name="failed_to_check_login">Unable to check whether you are logged in.</string>
     <string name="logged_out_message">Log in to Bookmeter to see your books.</string>
-    <string name="logged_in_message">You are logged in to Bookmeter.</string>
+    <string name="count_read">Completed</string>
+    <string name="count_reading">In Progress</string>
+    <string name="count_owned">Owned</string>
+    <string name="count_wish">Want to read</string>
     <string name="discover">Discover</string>
     <string name="rankings">Rankings</string>
     <string name="about_unofficial">%1$s is an unofficial client for Bookmeter (読書メーター). It is not affiliated with or endorsed by Bookmeter.</string>

@@ -5,12 +5,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.alexjl.samazama.api.isLoggedInToBookmeter
+import dev.alexjl.samazama.api.NotLoggedInException
+import dev.alexjl.samazama.api.fetchUserProfile
 import dev.alexjl.samazama.api.logOutOfBookmeter
+import dev.alexjl.samazama.data.UserProfile
 import kotlinx.coroutines.launch
 
 class SessionViewModel : ViewModel() {
     var loggedIn by mutableStateOf<Result<Boolean>?>(null)
+        private set
+    var profile by mutableStateOf<UserProfile?>(null)
         private set
     var loggingOut by mutableStateOf(false)
         private set
@@ -25,15 +29,17 @@ class SessionViewModel : ViewModel() {
         loggedIn = null
         logOutFailed = false
         viewModelScope.launch {
-            loggedIn = loadResult("SessionViewModel", "Failed to check login") {
-                isLoggedInToBookmeter()
+            val result = loadResult("SessionViewModel", "Failed to load profile") {
+                fetchUserProfile()
+            }
+            val failure = result.exceptionOrNull()
+            profile = result.getOrNull()
+            loggedIn = when {
+                failure == null -> Result.success(true)
+                failure is NotLoggedInException -> Result.success(false)
+                else -> Result.failure(failure)
             }
         }
-    }
-
-    fun onLoggedIn() {
-        logOutFailed = false
-        loggedIn = Result.success(true)
     }
 
     fun logOut() {
@@ -42,7 +48,10 @@ class SessionViewModel : ViewModel() {
         logOutFailed = false
         viewModelScope.launch {
             loadResult("SessionViewModel", "Failed to log out") { logOutOfBookmeter() }
-                .onSuccess { loggedIn = Result.success(false) }
+                .onSuccess {
+                    profile = null
+                    loggedIn = Result.success(false)
+                }
                 .onFailure { logOutFailed = true }
             loggingOut = false
         }

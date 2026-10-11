@@ -18,7 +18,7 @@ const val BOOKMETER_LOGIN_URL = "$BOOKMETER_BASE_URL/login"
 private const val USER_AGENT = "Samazama/1.0"
 
 /** Only shown to logged-in users; everyone else is redirected to the login page. */
-private const val LOGGED_IN_ONLY_URL = "$BOOKMETER_BASE_URL/home"
+const val BOOKMETER_HOME_URL = "$BOOKMETER_BASE_URL/home"
 private const val LOGOUT_URL = "$BOOKMETER_BASE_URL/logout"
 
 class NotLoggedInException(url: String) : IOException("GET $url needs a logged-in session")
@@ -44,7 +44,7 @@ suspend fun fetchBookmeterPage(
 }
 
 suspend fun isLoggedInToBookmeter(): Boolean = withContext(Dispatchers.IO) {
-    val connection = openBookmeterConnection(LOGGED_IN_ONLY_URL)
+    val connection = openBookmeterConnection(BOOKMETER_HOME_URL)
     connection.instanceFollowRedirects = false
     try {
         connection.responseCode == HttpURLConnection.HTTP_OK
@@ -55,13 +55,13 @@ suspend fun isLoggedInToBookmeter(): Boolean = withContext(Dispatchers.IO) {
 
 suspend fun logOutOfBookmeter() {
     val page = try {
-        fetchBookmeterPage(LOGGED_IN_ONLY_URL, requiresLogin = true)
+        fetchBookmeterPage(BOOKMETER_HOME_URL, requiresLogin = true)
     } catch (e: NotLoggedInException) {
         clearSessionCookies()
         return
     }
     val token = parseCsrfToken(page)
-        ?: throw IOException("GET $LOGGED_IN_ONLY_URL returned a page without a CSRF token")
+        ?: throw IOException("GET $BOOKMETER_HOME_URL returned a page without a CSRF token")
     postLogout(token)
     clearSessionCookies()
 }
@@ -79,7 +79,7 @@ private suspend fun postLogout(csrfToken: String) = withContext(Dispatchers.IO) 
         doOutput = true
         setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
         setRequestProperty("Origin", BOOKMETER_BASE_URL)
-        setRequestProperty("Referer", LOGGED_IN_ONLY_URL)
+        setRequestProperty("Referer", BOOKMETER_HOME_URL)
         setFixedLengthStreamingMode(body.size)
     }
     try {

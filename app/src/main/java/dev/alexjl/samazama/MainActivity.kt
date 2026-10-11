@@ -137,7 +137,12 @@ fun MyApp(
             exitTransition = { fadeOut(tween(TRANSITION_MILLIS)) }
         ) {
             composable<HomeRoute> {
+                val session = appScope?.let { viewModel<SessionViewModel>(viewModelStoreOwner = it) }
                 HomeScreen(
+                    loggedIn = if (session != null) session.loggedIn else Result.success(false),
+                    profile = session?.profile,
+                    onLogInClick = { navController.navigate(LoginRoute) },
+                    onRetryProfile = { session?.refresh() },
                     onProfileClick = { openTab(ProfileRoute) },
                     onRankingsClick = { navController.navigate(RankingsRoute) },
                     onSearchClick = { openTab(SearchRoute) }
@@ -167,7 +172,7 @@ fun MyApp(
                 LoginScreen(
                     onBackClick = goBack,
                     onLoggedIn = {
-                        session.onLoggedIn()
+                        session.refresh()
                         goBack()
                     }
                 )
