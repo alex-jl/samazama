@@ -4,6 +4,7 @@ import com.example.samazama.data.BookDetails
 import com.example.samazama.data.BookEdition
 import com.example.samazama.data.BookReview
 import com.example.samazama.data.BookReviewPage
+import com.example.samazama.data.BookStore
 import com.example.samazama.data.Reviewer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -18,11 +19,32 @@ fun bookUrl(id: Int): String = "$BOOKMETER_BASE_URL/books/$id"
 fun bookReviewsUrl(id: Int, offset: Int = 0, limit: Int = MAX_REVIEWS_PER_PAGE): String =
     "${bookUrl(id)}/reviews.json?offset=$offset&limit=$limit"
 
+fun bookStoresUrl(id: Int): String =
+    "$BOOKMETER_BASE_URL/api/v1/books/$id/external_book_stores.json"
+
 suspend fun fetchBookDetails(id: Int): BookDetails = coroutineScope {
     val reviews = async { fetchBookReviews(id) }
+    // The store links are an extra, so the book is still shown when they can't be loaded.
+    val stores = async {
+        try {
+            fetchBookStores(id)
+        } catch (e: IOException) {
+            emptyList()
+        }
+    }
     val url = bookUrl(id)
-    parseBookDetails(id, fetchBookmeterPage(url), reviews.await())
+    parseBookDetails(id, fetchBookmeterPage(url), reviews.await(), stores.await())
         ?: throw IOException("GET $url returned a page without book details")
+}
+
+suspend fun fetchBookStores(id: Int): List<BookStore> {
+    val url = bookStoresUrl(id)
+    val json = fetchBookmeterPage(url)
+    return try {
+        parseBookStores(json)
+    } catch (e: JSONException) {
+        throw IOException("GET $url returned malformed stores", e)
+    }
 }
 
 suspend fun fetchBookReviews(
@@ -42,7 +64,8 @@ suspend fun fetchBookReviews(
 fun parseBookDetails(
     id: Int,
     html: String,
-    reviews: BookReviewPage = BookReviewPage()
+    reviews: BookReviewPage = BookReviewPage(),
+    stores: List<BookStore> = emptyList()
 ): BookDetails? {
     val title = DETAILS_TITLE.findText(html) ?: return null
     val imageUrl = DETAILS_COVER.findText(html) ?: return null
@@ -59,8 +82,23 @@ fun parseBookDetails(
         trialUrl = DETAILS_TRIAL_URL.findText(html),
         editions = html.split(EDITION_ITEM_START).drop(1)
             .mapNotNull { parseEdition(it.substringBefore("</li>")) },
-        reviews = reviews
+        reviews = reviews,
+        stores = stores
     )
+}
+
+fun parseBookStores(json: String): List<BookStore> {
+    val resources = JSONObject(json).optJSONArray("resources")
+    return (0 until (resources?.length() ?: 0))
+        .mapNotNull { resources?.optJSONObject(it) }
+        .sortedBy { it.optInt("priority", Int.MAX_VALUE) }
+        .mapNotNull(::parseStore)
+}
+
+private fun parseStore(store: JSONObject): BookStore? {
+    val name = store.optString("official_name").trim().takeIf { it.isNotEmpty() } ?: return null
+    val url = store.optString("url").trim().takeIf { it.isNotEmpty() } ?: return null
+    return BookStore(name = name, url = if (url.startsWith("//")) "https:$url" else url)
 }
 
 fun parseBookReviews(json: String): BookReviewPage {

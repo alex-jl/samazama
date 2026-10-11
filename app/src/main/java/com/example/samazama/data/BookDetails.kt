@@ -12,7 +12,13 @@ data class BookDetails(
     val reviewCount: Int? = null,
     val trialUrl: String? = null,
     val editions: List<BookEdition> = emptyList(),
-    val reviews: BookReviewPage = BookReviewPage()
+    val reviews: BookReviewPage = BookReviewPage(),
+    val stores: List<BookStore> = emptyList()
+)
+
+data class BookStore(
+    val name: String,
+    val url: String
 )
 
 data class BookEdition(
@@ -90,5 +96,9 @@ val sampleBookDetails = BookDetails(
         ),
         offset = 0,
         totalCount = 1626
+    ),
+    stores = listOf(
+        BookStore("BOOK☆WALKER", "https://bookwalker.jp/de18150c08-5d87-4976-9441-901c65dd202c/"),
+        BookStore("Amazon", "https://www.amazon.co.jp/dp/4062772949"),
     )
 )

@@ -4,7 +4,6 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import androidx.annotation.PluralsRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -30,8 +30,6 @@ import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
@@ -48,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
@@ -76,9 +73,11 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 
 private val EdgePadding = 16.dp
-private val EditionWidth = 220.dp
-private val EditionHeight = 64.dp
-private val EditionSpacing = 8.dp
+private val CardWidth = 220.dp
+private val CardHeight = 64.dp
+private val CardSpacing = 8.dp
+
+private data class BookLink(val label: String, val url: String)
 
 @Composable
 fun BookDetailsScreen(
@@ -172,13 +171,13 @@ private fun BookDetailsContent(
             item { SectionHeader(stringResource(R.string.other_editions)) }
             item { EditionGrid(details.editions, onEditionClick) }
         }
-        if (details.trialUrl != null) {
+        if (details.trialUrl != null || details.stores.isNotEmpty()) {
             item { SectionHeader(stringResource(R.string.links)) }
             item {
-                LinkEntry(
-                    label = stringResource(R.string.read_sample),
-                    url = details.trialUrl
-                )
+                val sample = details.trialUrl?.let {
+                    BookLink(stringResource(R.string.read_sample), it)
+                }
+                LinkGrid(listOfNotNull(sample) + details.stores.map { BookLink(it.name, it.url) })
             }
         }
         item {
@@ -282,14 +281,42 @@ private fun BookHeader(details: BookDetails, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun LinkEntry(label: String, url: String, modifier: Modifier = Modifier) {
+private fun LinkGrid(links: List<BookLink>, modifier: Modifier = Modifier) {
+    CardGrid(itemCount = links.size, modifier = modifier) {
+        items(links) { link -> LinkEntry(link) }
+    }
+}
+
+@Composable
+private fun LinkEntry(link: BookLink, modifier: Modifier = Modifier) {
     val uriHandler = LocalUriHandler.current
-    ListItem(
-        headlineContent = { Text(label) },
-        modifier = modifier.clickable { uriHandler.openUri(url) },
-        trailingContent = { Icon(open_in_new, contentDescription = null) },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-    )
+    OutlinedCard(
+        onClick = { uriHandler.openUri(link.url) },
+        modifier = modifier.width(CardWidth)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = link.label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleSmall,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
+            )
+            Icon(
+                imageVector = open_in_new,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
 
 @Composable
@@ -298,14 +325,7 @@ private fun EditionGrid(
     onEditionClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rows = minOf(editions.size, 2)
-    LazyHorizontalGrid(
-        rows = GridCells.Fixed(rows),
-        modifier = modifier.height(EditionHeight * rows + EditionSpacing * (rows - 1)),
-        contentPadding = PaddingValues(horizontal = EdgePadding),
-        horizontalArrangement = Arrangement.spacedBy(EditionSpacing),
-        verticalArrangement = Arrangement.spacedBy(EditionSpacing)
-    ) {
+    CardGrid(itemCount = editions.size, modifier = modifier) {
         items(editions, key = { it.id }) { edition ->
             EditionEntry(edition, onClick = { onEditionClick(edition.id) })
         }
@@ -313,8 +333,25 @@ private fun EditionGrid(
 }
 
 @Composable
+private fun CardGrid(
+    itemCount: Int,
+    modifier: Modifier = Modifier,
+    content: LazyGridScope.() -> Unit
+) {
+    val rows = minOf(itemCount, 2)
+    LazyHorizontalGrid(
+        rows = GridCells.Fixed(rows),
+        modifier = modifier.height(CardHeight * rows + CardSpacing * (rows - 1)),
+        contentPadding = PaddingValues(horizontal = EdgePadding),
+        horizontalArrangement = Arrangement.spacedBy(CardSpacing),
+        verticalArrangement = Arrangement.spacedBy(CardSpacing),
+        content = content
+    )
+}
+
+@Composable
 private fun EditionEntry(edition: BookEdition, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    OutlinedCard(onClick = onClick, modifier = modifier.width(EditionWidth)) {
+    OutlinedCard(onClick = onClick, modifier = modifier.width(CardWidth)) {
         Row(
             modifier = Modifier
                 .fillMaxSize()

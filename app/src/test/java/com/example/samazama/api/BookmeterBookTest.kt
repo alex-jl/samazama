@@ -4,6 +4,7 @@ import com.example.samazama.data.BookDetails
 import com.example.samazama.data.BookEdition
 import com.example.samazama.data.BookReview
 import com.example.samazama.data.BookReviewPage
+import com.example.samazama.data.BookStore
 import com.example.samazama.data.Reviewer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,6 +17,25 @@ class BookmeterBookTest {
 
     private val html: String = fixture("/book_tokeikan.html")
     private val reviewsJson: String = fixture("/book_tokeikan_reviews.json")
+    private val storesJson: String = fixture("/book_tokeikan_stores.json")
+
+    private val stores = listOf(
+        BookStore(
+            "BOOK☆WALKER",
+            "https://bookwalker.jp/de18150c08-5d87-4976-9441-901c65dd202c/?adpcnt=7qM_t"
+        ),
+        BookStore(
+            "Amazon",
+            "https://www.amazon.co.jp/dp/4062772949/ref=as_li_tf_tl?camp=247&creative=1211" +
+                    "&creativeASIN=4062772949&ie=UTF8&linkCode=as2" +
+                    "&tag=bookmeter_book_middle_detail_pc_logoff-22"
+        ),
+        BookStore(
+            "honto",
+            "https://ck.jp.ap.valuecommerce.com/servlet/referral?sid=3588324&pid=887261621" +
+                    "&vc_url=https%3A%2F%2Fhonto.jp%2Febook%2Fpd_26253538.html%3Fpartnerid%3D02vc01"
+        ),
+    )
 
     private val reviews = BookReviewPage(
         reviews = listOf(
@@ -69,10 +89,30 @@ class BookmeterBookTest {
                     BookEdition(573864, "文庫", "講談社", registrationCount = 6995),
                     BookEdition(550290, "新書", "講談社", registrationCount = 695),
                 ),
-                reviews = reviews
+                reviews = reviews,
+                stores = stores
             ),
-            parseBookDetails(4965689, html, reviews)
+            parseBookDetails(4965689, html, reviews, stores)
         )
+    }
+
+    @Test
+    fun `parses the stores in priority order with absolute URLs`() {
+        assertEquals(stores, parseBookStores(storesJson))
+    }
+
+    @Test
+    fun `skips stores without a name or URL`() {
+        assertEquals(
+            listOf(BookStore("Amazon", "https://www.amazon.co.jp/dp/4062772949")),
+            parseBookStores(
+                "{\"resources\":[" +
+                        "{\"official_name\":\"honto\",\"url\":\"\"}," +
+                        "{\"official_name\":\"Amazon\",\"url\":\"https://www.amazon.co.jp/dp/4062772949\"}," +
+                        "{\"url\":\"https://example.com\"}]}"
+            )
+        )
+        assertEquals(emptyList<BookStore>(), parseBookStores("{\"resources\":[]}"))
     }
 
     @Test
@@ -109,6 +149,10 @@ class BookmeterBookTest {
         assertEquals(
             "https://bookmeter.com/books/4965689/reviews.json?offset=40&limit=10",
             bookReviewsUrl(4965689, offset = 40, limit = 10)
+        )
+        assertEquals(
+            "https://bookmeter.com/api/v1/books/4965689/external_book_stores.json",
+            bookStoresUrl(4965689)
         )
     }
 
