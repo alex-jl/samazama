@@ -1,6 +1,5 @@
 package dev.alexjl.samazama.ui
 
-import androidx.annotation.StringRes
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -11,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -53,6 +53,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.alexjl.samazama.R
+import dev.alexjl.samazama.api.BookShelf
 import dev.alexjl.samazama.api.BOOKMETER_BASE_URL
 import dev.alexjl.samazama.api.DEFAULT_PROFILE_IMAGE_URL
 import dev.alexjl.samazama.data.UserProfile
@@ -71,6 +72,7 @@ fun HomeScreen(
     loggedIn: Result<Boolean>?,
     profile: UserProfile?,
     onProfileClick: () -> Unit,
+    onShelfClick: (BookShelf) -> Unit,
     onLogInClick: () -> Unit,
     onRetryProfile: () -> Unit,
     onRankingsClick: () -> Unit,
@@ -105,7 +107,11 @@ fun HomeScreen(
                 actionLabel = stringResource(R.string.retry),
                 onAction = onRetryProfile
             )
-            profile != null -> ProfileSummary(profile, onClick = onProfileClick)
+            profile != null -> ProfileSummary(
+                profile = profile,
+                onClick = onProfileClick,
+                onShelfClick = onShelfClick
+            )
             else -> ProfilePlaceholder(
                 message = stringResource(R.string.log_in_prompt),
                 actionLabel = stringResource(R.string.log_in),
@@ -171,7 +177,8 @@ private fun ProfilePlaceholder(
 private fun ProfileSummary(
     profile: UserProfile?,
     onClick: (() -> Unit)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onShelfClick: ((BookShelf) -> Unit)? = null
 ) {
     val profileLabel = stringResource(R.string.profile)
     val skeletonAlpha: (() -> Float)? = if (profile == null) {
@@ -253,15 +260,15 @@ private fun ProfileSummary(
                 modifier = Modifier.height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                BookCountCard(R.string.count_read, profile?.readCount, skeletonAlpha, cardModifier)
-                BookCountCard(R.string.count_reading, profile?.readingCount, skeletonAlpha, cardModifier)
+                BookCountCard(BookShelf.READ, profile?.readCount, skeletonAlpha, onShelfClick, cardModifier)
+                BookCountCard(BookShelf.READING, profile?.readingCount, skeletonAlpha, onShelfClick, cardModifier)
             }
             Row(
                 modifier = Modifier.height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                BookCountCard(R.string.count_owned, profile?.stackedCount, skeletonAlpha, cardModifier)
-                BookCountCard(R.string.count_wish, profile?.wishCount, skeletonAlpha, cardModifier)
+                BookCountCard(BookShelf.STACKED, profile?.stackedCount, skeletonAlpha, onShelfClick, cardModifier)
+                BookCountCard(BookShelf.WISH, profile?.wishCount, skeletonAlpha, onShelfClick, cardModifier)
             }
         }
     }
@@ -269,18 +276,24 @@ private fun ProfileSummary(
 
 @Composable
 private fun BookCountCard(
-    @StringRes labelRes: Int,
+    shelf: BookShelf,
     count: Int?,
     skeletonAlpha: (() -> Float)?,
+    onShelfClick: ((BookShelf) -> Unit)?,
     modifier: Modifier = Modifier
 ) {
-    OutlinedCard(modifier = modifier) {
+    val content: @Composable ColumnScope.() -> Unit = {
         BookCount(
-            labelRes = labelRes,
+            labelRes = shelf.labelRes,
             count = count,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             skeletonAlpha = skeletonAlpha
         )
+    }
+    if (onShelfClick != null) {
+        OutlinedCard(onClick = { onShelfClick(shelf) }, modifier = modifier, content = content)
+    } else {
+        OutlinedCard(modifier = modifier, content = content)
     }
 }
 
@@ -317,6 +330,7 @@ private fun HomeScreenPreview() {
             loggedIn = Result.success(true),
             profile = sampleUserProfile,
             onProfileClick = {},
+            onShelfClick = {},
             onLogInClick = {},
             onRetryProfile = {},
             onRankingsClick = {},
@@ -333,6 +347,7 @@ private fun LoadingHomeScreenPreview() {
             loggedIn = null,
             profile = null,
             onProfileClick = {},
+            onShelfClick = {},
             onLogInClick = {},
             onRetryProfile = {},
             onRankingsClick = {},
@@ -349,6 +364,7 @@ private fun LoggedOutHomeScreenPreview() {
             loggedIn = Result.success(false),
             profile = null,
             onProfileClick = {},
+            onShelfClick = {},
             onLogInClick = {},
             onRetryProfile = {},
             onRankingsClick = {},

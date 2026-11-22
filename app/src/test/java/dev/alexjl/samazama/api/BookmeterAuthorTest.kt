@@ -3,7 +3,7 @@ package dev.alexjl.samazama.api
 import dev.alexjl.samazama.data.AuthorAward
 import dev.alexjl.samazama.data.AuthorDetails
 import dev.alexjl.samazama.data.Book
-import dev.alexjl.samazama.data.BookSearchPage
+import dev.alexjl.samazama.data.BookPage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -15,7 +15,7 @@ class BookmeterAuthorTest {
             "missing test fixture"
         }.reader().use { it.readText() }
 
-    private val books = BookSearchPage(
+    private val books = BookPage(
         books = listOf(
             Book(
                 11453932,

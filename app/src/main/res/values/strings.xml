@@ -53,6 +53,9 @@
     <string name="page_indicator">Page %1$d of %2$d</string>
     <string name="previous_page">Previous page</string>
     <string name="next_page">Next page</string>
+    <string name="loading_books">Loading books...</string>
+    <string name="failed_to_load_books">Unable to load the books.</string>
+    <string name="no_books_on_shelf">No books here yet.</string>
     <string name="loading_rankings">Loading rankings...</string>
     <string name="failed_to_load_rankings">Unable to load the rankings.</string>
     <string name="retry">Retry</string>
@@ -74,6 +77,14 @@
     <string name="no_reviews">No reviews yet.</string>
     <string name="spoiler_hidden">This review contains spoilers.</string>
     <string name="show_spoiler">Show</string>
+    <plurals name="book_count">
+        <item quantity="one">%,d book</item>
+        <item quantity="other">%,d books</item>
+    </plurals>
+    <plurals name="book_range">
+        <item quantity="one">%1$,d–%2$,d of %3$,d book</item>
+        <item quantity="other">%1$,d–%2$,d of %3$,d books</item>
+    </plurals>
     <plurals name="page_count">
         <item quantity="one">%,d page</item>
         <item quantity="other">%,d pages</item>

@@ -1,5 +1,6 @@
 package dev.alexjl.samazama.ui
 
+import dev.alexjl.samazama.api.BookShelf
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -28,3 +29,6 @@ data class BookRoute(val id: Int)
 
 @Serializable
 data class AuthorRoute(val name: String)
+
+@Serializable
+data class BookShelfRoute(val userId: Int, val shelf: BookShelf)

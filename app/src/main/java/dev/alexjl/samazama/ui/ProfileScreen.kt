@@ -1,6 +1,7 @@
 package dev.alexjl.samazama.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -38,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.alexjl.samazama.R
+import dev.alexjl.samazama.api.BookShelf
 import dev.alexjl.samazama.data.UserProfile
 import dev.alexjl.samazama.data.sampleUserProfile
 
@@ -47,6 +50,7 @@ fun ProfileScreen(
     onBackClick: () -> Unit,
     onAccountClick: () -> Unit,
     onLogInClick: () -> Unit,
+    onShelfClick: (BookShelf) -> Unit,
     modifier: Modifier = Modifier
 ) {
     ProfileContent(
@@ -57,6 +61,7 @@ fun ProfileScreen(
         onBackClick = onBackClick,
         onAccountClick = onAccountClick,
         onLogInClick = onLogInClick,
+        onShelfClick = onShelfClick,
         onLogOutClick = session::logOut,
         onRetry = session::refresh,
         modifier = modifier
@@ -72,6 +77,7 @@ private fun ProfileContent(
     onBackClick: () -> Unit,
     onAccountClick: () -> Unit,
     onLogInClick: () -> Unit,
+    onShelfClick: (BookShelf) -> Unit,
     onLogOutClick: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
@@ -91,7 +97,7 @@ private fun ProfileContent(
         else -> loggedIn.fold(
             onSuccess = {
                 if (it) {
-                    LoggedInProfile(profile, logOutFailed)
+                    LoggedInProfile(profile, logOutFailed, onShelfClick)
                 } else {
                     LoggedOutProfile(onLogInClick)
                 }
@@ -134,7 +140,11 @@ private fun ProfileMenu(onAccountClick: () -> Unit, onLogOutClick: () -> Unit) {
 }
 
 @Composable
-private fun LoggedInProfile(profile: UserProfile?, logOutFailed: Boolean) {
+private fun LoggedInProfile(
+    profile: UserProfile?,
+    logOutFailed: Boolean,
+    onShelfClick: (BookShelf) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -162,11 +172,23 @@ private fun LoggedInProfile(profile: UserProfile?, logOutFailed: Boolean) {
                 )
             }
             Row(modifier = Modifier.fillMaxWidth()) {
-                val countModifier = Modifier.weight(1f)
-                BookCount(R.string.count_read, profile.readCount, countModifier, Alignment.CenterHorizontally)
-                BookCount(R.string.count_reading, profile.readingCount, countModifier, Alignment.CenterHorizontally)
-                BookCount(R.string.count_owned, profile.stackedCount, countModifier, Alignment.CenterHorizontally)
-                BookCount(R.string.count_wish, profile.wishCount, countModifier, Alignment.CenterHorizontally)
+                listOf(
+                    BookShelf.READ to profile.readCount,
+                    BookShelf.READING to profile.readingCount,
+                    BookShelf.STACKED to profile.stackedCount,
+                    BookShelf.WISH to profile.wishCount,
+                ).forEach { (shelf, count) ->
+                    BookCount(
+                        labelRes = shelf.labelRes,
+                        count = count,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { onShelfClick(shelf) }
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    )
+                }
             }
         }
         if (logOutFailed) {
@@ -203,7 +225,7 @@ private fun LoggedOutProfile(onLogInClick: () -> Unit) {
 @Composable
 private fun LoggedOutProfilePreview() {
     BookPreviewTheme {
-        ProfileContent(Result.success(false), null, false, false, {}, {}, {}, {}, {})
+        ProfileContent(Result.success(false), null, false, false, {}, {}, {}, {}, {}, {})
     }
 }
 
@@ -211,6 +233,6 @@ private fun LoggedOutProfilePreview() {
 @Composable
 private fun LoggedInProfilePreview() {
     BookPreviewTheme {
-        ProfileContent(Result.success(true), sampleUserProfile, false, true, {}, {}, {}, {}, {})
+        ProfileContent(Result.success(true), sampleUserProfile, false, true, {}, {}, {}, {}, {}, {})
     }
 }

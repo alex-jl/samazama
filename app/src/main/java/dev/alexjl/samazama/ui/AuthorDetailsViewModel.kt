@@ -11,7 +11,7 @@ import dev.alexjl.samazama.api.fetchAuthorBooks
 import dev.alexjl.samazama.api.fetchAuthorDetails
 import dev.alexjl.samazama.data.AuthorDetails
 import dev.alexjl.samazama.data.Book
-import dev.alexjl.samazama.data.BookSearchPage
+import dev.alexjl.samazama.data.BookPage
 import kotlinx.coroutines.launch
 
 class AuthorDetailsViewModel(savedState: SavedStateHandle) : ViewModel() {
@@ -26,7 +26,7 @@ class AuthorDetailsViewModel(savedState: SavedStateHandle) : ViewModel() {
     var loadingMoreBooks by mutableStateOf(false)
         private set
 
-    private var lastBookPage = BookSearchPage()
+    private var lastBookPage = BookPage()
 
     init {
         load()
@@ -57,7 +57,7 @@ class AuthorDetailsViewModel(savedState: SavedStateHandle) : ViewModel() {
         }
     }
 
-    private fun addBooks(page: BookSearchPage) {
+    private fun addBooks(page: BookPage) {
         val known = books.mapTo(HashSet()) { it.id }
         books = books + page.books.filter { known.add(it.id) }
         lastBookPage = page

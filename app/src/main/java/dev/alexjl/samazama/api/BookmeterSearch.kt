@@ -1,6 +1,6 @@
 package dev.alexjl.samazama.api
 
-import dev.alexjl.samazama.data.BookSearchPage
+import dev.alexjl.samazama.data.BookPage
 import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -10,10 +10,10 @@ fun searchUrl(keyword: String, page: Int = 1): String =
     "$BOOKMETER_BASE_URL/search?keyword=${URLEncoder.encode(keyword, "UTF-8")}" +
             "&partial=true&sort=recommended&page=$page"
 
-suspend fun searchBooks(keyword: String, page: Int = 1): BookSearchPage =
+suspend fun searchBooks(keyword: String, page: Int = 1): BookPage =
     parseSearchPage(fetchBookmeterPage(searchUrl(keyword, page)))
 
-fun parseSearchPage(html: String): BookSearchPage {
+fun parseSearchPage(html: String): BookPage {
     val document = Jsoup.parse(html)
     val books = document.select("li.group__book")
         .mapNotNull { parseBook(it, preferCoverTitle = true) }
@@ -22,7 +22,7 @@ fun parseSearchPage(html: String): BookSearchPage {
     val offset = pagination?.optInt("offset") ?: 0
     val perPage = pagination?.optInt("per_page")?.takeIf { it > 0 }
     val totalCount = pagination?.takeIf { it.has("total") }?.optInt("total") ?: books.size
-    return BookSearchPage(
+    return BookPage(
         books = books,
         page = if (perPage != null) offset / perPage + 1 else 1,
         pageCount = when {

@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dev.alexjl.samazama.api.BookShelf
 import dev.alexjl.samazama.data.ThemeMode
 import dev.alexjl.samazama.data.loadThemeMode
 import dev.alexjl.samazama.data.saveThemeMode
@@ -40,6 +41,8 @@ import dev.alexjl.samazama.ui.AuthorRoute
 import dev.alexjl.samazama.ui.BookDetailsScreen
 import dev.alexjl.samazama.ui.BookRankingScreen
 import dev.alexjl.samazama.ui.BookRoute
+import dev.alexjl.samazama.ui.BookShelfRoute
+import dev.alexjl.samazama.ui.BookShelfScreen
 import dev.alexjl.samazama.ui.HomeRoute
 import dev.alexjl.samazama.ui.HomeScreen
 import dev.alexjl.samazama.ui.LoginRoute
@@ -110,6 +113,9 @@ fun MyApp(
     }
     val openBook = { id: Int -> navController.navigate(BookRoute(id)) }
     val openAuthor = { name: String -> navController.navigate(AuthorRoute(name)) }
+    val openShelf = { userId: Int, shelf: BookShelf ->
+        navController.navigate(BookShelfRoute(userId, shelf))
+    }
 
     Scaffold(
         modifier = modifier,
@@ -144,6 +150,7 @@ fun MyApp(
                     onLogInClick = { navController.navigate(LoginRoute) },
                     onRetryProfile = { session?.refresh() },
                     onProfileClick = { openTab(ProfileRoute) },
+                    onShelfClick = { shelf -> session?.profile?.let { openShelf(it.id, shelf) } },
                     onRankingsClick = { navController.navigate(RankingsRoute) },
                     onSearchClick = { openTab(SearchRoute) }
                 )
@@ -156,11 +163,21 @@ fun MyApp(
                 )
             }
             composable<ProfileRoute> {
+                val session: SessionViewModel =
+                    viewModel(viewModelStoreOwner = checkNotNull(appScope))
                 ProfileScreen(
-                    session = viewModel(viewModelStoreOwner = checkNotNull(appScope)),
+                    session = session,
                     onBackClick = goBack,
                     onAccountClick = { navController.navigate(AccountRoute) },
-                    onLogInClick = { navController.navigate(LoginRoute) }
+                    onLogInClick = { navController.navigate(LoginRoute) },
+                    onShelfClick = { shelf -> session.profile?.let { openShelf(it.id, shelf) } }
+                )
+            }
+            composable<BookShelfRoute> {
+                BookShelfScreen(
+                    viewModel = viewModel(),
+                    onBackClick = goBack,
+                    onBookClick = { openBook(it.id) }
                 )
             }
             composable<AccountRoute> {

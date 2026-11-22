@@ -1,7 +1,7 @@
 package dev.alexjl.samazama.api
 
 import dev.alexjl.samazama.data.Book
-import dev.alexjl.samazama.data.BookSearchPage
+import dev.alexjl.samazama.data.BookPage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -19,7 +19,7 @@ class BookmeterShelvesTest {
         val page = parseShelfPage(html)
 
         assertEquals(
-            BookSearchPage(
+            BookPage(
                 books = listOf(
                     Book(
                         499296,
@@ -62,7 +62,7 @@ class BookmeterShelvesTest {
     @Test
     fun `finds no books or pages on an empty shelf`() {
         assertEquals(
-            BookSearchPage(books = emptyList(), page = 1, pageCount = 0, totalCount = 0),
+            BookPage(books = emptyList(), page = 1, pageCount = 0, totalCount = 0),
             parseShelfPage("<div class=\"bm-pagination-notice\">表示項目がありません</div>")
         )
     }

@@ -7,7 +7,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.alexjl.samazama.api.searchBooks
-import dev.alexjl.samazama.data.BookSearchPage
+import dev.alexjl.samazama.data.BookPage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -16,7 +16,7 @@ class SearchViewModel(private val savedState: SavedStateHandle) : ViewModel() {
         private set
     var keyword by mutableStateOf(savedState.get<String>(KEYWORD_KEY))
         private set
-    var results by mutableStateOf<Result<BookSearchPage>?>(null)
+    var results by mutableStateOf<Result<BookPage>?>(null)
         private set
 
     private var page = savedState.get<Int>(PAGE_KEY) ?: 1

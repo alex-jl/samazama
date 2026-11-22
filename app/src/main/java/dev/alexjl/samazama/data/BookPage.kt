@@ -1,6 +1,6 @@
 package dev.alexjl.samazama.data
 
-data class BookSearchPage(
+data class BookPage(
     val books: List<Book> = emptyList(),
     val page: Int = 1,
     val pageCount: Int = 0,

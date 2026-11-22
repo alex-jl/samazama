@@ -2,7 +2,7 @@ package dev.alexjl.samazama.api
 
 import dev.alexjl.samazama.data.AuthorAward
 import dev.alexjl.samazama.data.AuthorDetails
-import dev.alexjl.samazama.data.BookSearchPage
+import dev.alexjl.samazama.data.BookPage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.Jsoup
@@ -29,10 +29,10 @@ suspend fun fetchAuthorDetails(name: String): AuthorDetails = coroutineScope {
         ?: throw IOException("GET $url returned a page without author details")
 }
 
-suspend fun fetchAuthorBooks(name: String, page: Int = 1): BookSearchPage =
+suspend fun fetchAuthorBooks(name: String, page: Int = 1): BookPage =
     parseSearchPage(fetchBookmeterPage(authorBooksUrl(name, page)))
 
-fun parseAuthorDetails(html: String, books: BookSearchPage = BookSearchPage()): AuthorDetails? {
+fun parseAuthorDetails(html: String, books: BookPage = BookPage()): AuthorDetails? {
     val document = Jsoup.parse(html)
     val name = document.selectFirst(".title__user")?.text()
         ?.takeIf { it.isNotEmpty() } ?: return null

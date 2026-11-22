@@ -1,6 +1,6 @@
 package dev.alexjl.samazama.api
 
-import dev.alexjl.samazama.data.BookSearchPage
+import dev.alexjl.samazama.data.BookPage
 import org.jsoup.Jsoup
 
 enum class BookShelf(internal val urlSegment: String) {
@@ -13,10 +13,10 @@ enum class BookShelf(internal val urlSegment: String) {
 fun shelfUrl(userId: Int, shelf: BookShelf, page: Int = 1): String =
     "$BOOKMETER_BASE_URL/users/$userId/books/${shelf.urlSegment}?page=$page"
 
-suspend fun fetchShelf(userId: Int, shelf: BookShelf, page: Int = 1): BookSearchPage =
+suspend fun fetchShelf(userId: Int, shelf: BookShelf, page: Int = 1): BookPage =
     parseShelfPage(fetchBookmeterPage(shelfUrl(userId, shelf, page)))
 
-fun parseShelfPage(html: String): BookSearchPage {
+fun parseShelfPage(html: String): BookPage {
     val document = Jsoup.parse(html)
     val books = document.select("li.group__book")
         .mapNotNull { parseBook(it, preferCoverTitle = true) }
@@ -28,7 +28,7 @@ fun parseShelfPage(html: String): BookSearchPage {
         ?.let { TOTAL_COUNT.find(it)?.groupValues?.get(1) }
         ?.replace(",", "")?.toIntOrNull()
         ?: books.size
-    return BookSearchPage(
+    return BookPage(
         books = books,
         page = page,
         pageCount = if (totalCount == 0) 0 else maxOf(page, lastLinkedPage ?: 1),
