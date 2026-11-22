@@ -4,6 +4,7 @@
     <string name="show_more">Show more</string>
     <string name="view_book">View book</string>
     <string name="log_in_prompt">Log in to track your own books.</string>
+    <string name="loading_profile">Loading profile...</string>
     <string name="failed_to_load_profile">Unable to load your profile.</string>
     <string name="account">Account</string>
     <string name="loading_account">Loading account...</string>

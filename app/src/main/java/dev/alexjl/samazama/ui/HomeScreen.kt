@@ -1,6 +1,11 @@
 package dev.alexjl.samazama.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +15,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -21,7 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -34,15 +37,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import dev.alexjl.samazama.R
@@ -83,13 +96,16 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState())
     ) {
         when {
-            loggedIn == null -> Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(ProfileSummaryHeight),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+            loggedIn == null -> {
+                val loadingLabel = stringResource(R.string.loading_profile)
+                ProfileSummary(
+                    profile = null,
+                    onClick = null,
+                    modifier = Modifier.clearAndSetSemantics {
+                        contentDescription = loadingLabel
+                        progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate
+                    }
+                )
             }
             loggedIn.isFailure -> ProfilePlaceholder(
                 message = stringResource(R.string.failed_to_load_profile),
@@ -160,11 +176,22 @@ private fun ProfilePlaceholder(
 
 @Composable
 private fun ProfileSummary(
-    profile: UserProfile,
+    profile: UserProfile?,
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     val profileLabel = stringResource(R.string.profile)
+    val skeletonAlpha: (() -> Float)? = if (profile == null) {
+        val pulse = rememberInfiniteTransition(label = "skeleton").animateFloat(
+            initialValue = 1f,
+            targetValue = 0.5f,
+            animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
+            label = "skeletonAlpha"
+        )
+        pulse::value
+    } else {
+        null
+    }
     Row(
         modifier = modifier
             .heightIn(min = ProfileSummaryHeight)
@@ -186,23 +213,41 @@ private fun ProfileSummary(
                 .padding(vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AsyncImage(
-                model = profile.imageUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(ProfilePictureSize)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Crop
-            )
-            Text(
-                text = profile.name,
-                modifier = Modifier.padding(top = 8.dp),
-                style = MaterialTheme.typography.labelLarge,
-                textAlign = TextAlign.Center,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 2
-            )
+            if (skeletonAlpha != null) {
+                Box(
+                    modifier = Modifier
+                        .size(ProfilePictureSize)
+                        .graphicsLayer { alpha = skeletonAlpha() }
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+                TextSkeleton(
+                    style = MaterialTheme.typography.labelLarge,
+                    width = ProfilePictureSize - 16.dp,
+                    alpha = skeletonAlpha,
+                    modifier = Modifier.padding(top = 8.dp),
+                    minLines = 2
+                )
+            } else if (profile != null) {
+                AsyncImage(
+                    model = profile.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(ProfilePictureSize)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentScale = ContentScale.Crop
+                )
+                Text(
+                    text = profile.name,
+                    modifier = Modifier.padding(top = 8.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                    overflow = TextOverflow.Ellipsis,
+                    minLines = 2,
+                    maxLines = 2
+                )
+            }
         }
         Column(
             modifier = Modifier.weight(1f),
@@ -215,29 +260,39 @@ private fun ProfileSummary(
                 modifier = Modifier.height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                BookCountCard(R.string.count_read, profile.readCount, cardModifier)
-                BookCountCard(R.string.count_reading, profile.readingCount, cardModifier)
+                BookCountCard(R.string.count_read, profile?.readCount, skeletonAlpha, cardModifier)
+                BookCountCard(R.string.count_reading, profile?.readingCount, skeletonAlpha, cardModifier)
             }
             Row(
                 modifier = Modifier.height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                BookCountCard(R.string.count_owned, profile.stackedCount, cardModifier)
-                BookCountCard(R.string.count_wish, profile.wishCount, cardModifier)
+                BookCountCard(R.string.count_owned, profile?.stackedCount, skeletonAlpha, cardModifier)
+                BookCountCard(R.string.count_wish, profile?.wishCount, skeletonAlpha, cardModifier)
             }
         }
     }
 }
 
 @Composable
-private fun BookCountCard(@StringRes labelRes: Int, count: Int?, modifier: Modifier = Modifier) {
+private fun BookCountCard(
+    @StringRes labelRes: Int,
+    count: Int?,
+    skeletonAlpha: (() -> Float)?,
+    modifier: Modifier = Modifier
+) {
     OutlinedCard(modifier = modifier) {
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-            Text(
-                text = count?.let { NumberFormat.getIntegerInstance().format(it) } ?: "–",
-                style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
-                maxLines = 1
-            )
+            val countStyle = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum")
+            if (skeletonAlpha != null) {
+                TextSkeleton(style = countStyle, width = 40.dp, alpha = skeletonAlpha)
+            } else {
+                Text(
+                    text = count?.let { NumberFormat.getIntegerInstance().format(it) } ?: "–",
+                    style = countStyle,
+                    maxLines = 1
+                )
+            }
             Text(
                 text = stringResource(labelRes),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -247,6 +302,35 @@ private fun BookCountCard(@StringRes labelRes: Int, count: Int?, modifier: Modif
             )
         }
     }
+}
+
+@Composable
+private fun TextSkeleton(
+    style: TextStyle,
+    width: Dp,
+    alpha: () -> Float,
+    modifier: Modifier = Modifier,
+    minLines: Int = 1
+) {
+    val color = MaterialTheme.colorScheme.surfaceVariant
+    Text(
+        text = " ",
+        modifier = modifier
+            .width(width)
+            .graphicsLayer { this.alpha = alpha() }
+            .drawBehind {
+                val lineHeight = size.height / minLines
+                drawRoundRect(
+                    color = color,
+                    topLeft = Offset(0f, lineHeight / 5),
+                    size = Size(size.width, lineHeight * 3 / 5),
+                    cornerRadius = CornerRadius(4.dp.toPx())
+                )
+            },
+        color = Color.Transparent,
+        style = style,
+        minLines = minLines
+    )
 }
 
 @Composable
@@ -281,6 +365,22 @@ private fun HomeScreenPreview() {
         HomeScreen(
             loggedIn = Result.success(true),
             profile = sampleUserProfile,
+            onProfileClick = {},
+            onLogInClick = {},
+            onRetryProfile = {},
+            onRankingsClick = {},
+            onSearchClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 480)
+@Composable
+private fun LoadingHomeScreenPreview() {
+    BookPreviewTheme {
+        HomeScreen(
+            loggedIn = null,
+            profile = null,
             onProfileClick = {},
             onLogInClick = {},
             onRetryProfile = {},
