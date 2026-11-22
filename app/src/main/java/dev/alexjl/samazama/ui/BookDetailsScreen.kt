@@ -50,7 +50,12 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -390,8 +395,20 @@ private fun ReviewEntry(review: BookReview, modifier: Modifier = Modifier) {
                 }
             }
             if (revealed) {
+                val spoilerLabel = stringResource(R.string.spoiler_label)
+                val spoilerColor = MaterialTheme.colorScheme.error
                 Text(
-                    text = review.content,
+                    text = if (review.isSpoiler) {
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(color = spoilerColor, fontWeight = FontWeight.Bold)) {
+                                append(spoilerLabel)
+                            }
+                            append(" ")
+                            append(review.content)
+                        }
+                    } else {
+                        AnnotatedString(review.content)
+                    },
                     modifier = Modifier.padding(top = 8.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )

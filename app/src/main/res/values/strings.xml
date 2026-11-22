@@ -77,6 +77,7 @@
     <string name="no_reviews">No reviews yet.</string>
     <string name="spoiler_hidden">This review contains spoilers.</string>
     <string name="show_spoiler">Show</string>
+    <string name="spoiler_label">Spoiler:</string>
     <plurals name="book_count">
         <item quantity="one">%,d book</item>
         <item quantity="other">%,d books</item>
