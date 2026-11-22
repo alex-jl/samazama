@@ -16,9 +16,6 @@ data object ProfileRoute
 data object LoginRoute
 
 @Serializable
-data object AccountRoute
-
-@Serializable
 data object SearchRoute
 
 @Serializable

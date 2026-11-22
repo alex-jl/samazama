@@ -1,6 +1,7 @@
 package dev.alexjl.samazama.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,11 +12,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +33,10 @@ import dev.alexjl.samazama.ui.theme.SamazamaTheme
 fun SettingsScreen(
     themeMode: ThemeMode,
     onThemeModeChange: (ThemeMode) -> Unit,
+    loggedIn: Boolean,
+    loggingOut: Boolean,
+    logOutFailed: Boolean,
+    onLogOutClick: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) = AppScreen(
@@ -63,6 +72,26 @@ fun SettingsScreen(
                 }
             }
         }
+        if (loggedIn || loggingOut) {
+            SectionHeader(stringResource(R.string.account))
+            ListItem(
+                headlineContent = {
+                    Text(stringResource(if (loggingOut) R.string.logging_out else R.string.log_out))
+                },
+                modifier = Modifier.clickable(enabled = !loggingOut, onClick = onLogOutClick),
+                supportingContent = if (logOutFailed) {
+                    {
+                        Text(
+                            text = stringResource(R.string.failed_to_log_out),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                } else {
+                    null
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+            )
+        }
     }
 }
 
@@ -77,6 +106,14 @@ private val ThemeMode.labelRes: Int
 @Composable
 private fun SettingsScreenPreview() {
     SamazamaTheme {
-        SettingsScreen(themeMode = ThemeMode.SYSTEM, onThemeModeChange = {}, onBackClick = {})
+        SettingsScreen(
+            themeMode = ThemeMode.SYSTEM,
+            onThemeModeChange = {},
+            loggedIn = true,
+            loggingOut = false,
+            logOutFailed = false,
+            onLogOutClick = {},
+            onBackClick = {}
+        )
     }
 }

@@ -33,8 +33,6 @@ import dev.alexjl.samazama.api.BookShelf
 import dev.alexjl.samazama.data.ThemeMode
 import dev.alexjl.samazama.data.loadThemeMode
 import dev.alexjl.samazama.data.saveThemeMode
-import dev.alexjl.samazama.ui.AccountRoute
-import dev.alexjl.samazama.ui.AccountScreen
 import dev.alexjl.samazama.ui.AppNavigationBar
 import dev.alexjl.samazama.ui.AuthorDetailsScreen
 import dev.alexjl.samazama.ui.AuthorRoute
@@ -168,7 +166,6 @@ fun MyApp(
                 ProfileScreen(
                     session = session,
                     onBackClick = goBack,
-                    onAccountClick = { navController.navigate(AccountRoute) },
                     onLogInClick = { navController.navigate(LoginRoute) },
                     onShelfClick = { shelf -> session.profile?.let { openShelf(it.id, shelf) } }
                 )
@@ -179,9 +176,6 @@ fun MyApp(
                     onBackClick = goBack,
                     onBookClick = { openBook(it.id) }
                 )
-            }
-            composable<AccountRoute> {
-                AccountScreen(viewModel = viewModel(), onBackClick = goBack)
             }
             composable<LoginRoute> {
                 val session: SessionViewModel =
@@ -202,7 +196,17 @@ fun MyApp(
                 )
             }
             composable<SettingsRoute> {
-                SettingsScreen(themeMode, onThemeModeChange, onBackClick = goBack)
+                val session: SessionViewModel =
+                    viewModel(viewModelStoreOwner = checkNotNull(appScope))
+                SettingsScreen(
+                    themeMode = themeMode,
+                    onThemeModeChange = onThemeModeChange,
+                    loggedIn = session.loggedIn?.getOrNull() == true,
+                    loggingOut = session.loggingOut,
+                    logOutFailed = session.logOutFailed,
+                    onLogOutClick = session::logOut,
+                    onBackClick = goBack
+                )
             }
             composable<BookRoute> {
                 BookDetailsScreen(

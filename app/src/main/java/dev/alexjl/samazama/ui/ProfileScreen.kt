@@ -3,7 +3,6 @@ package dev.alexjl.samazama.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,20 +14,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +37,6 @@ import dev.alexjl.samazama.data.sampleUserProfile
 fun ProfileScreen(
     session: SessionViewModel,
     onBackClick: () -> Unit,
-    onAccountClick: () -> Unit,
     onLogInClick: () -> Unit,
     onShelfClick: (BookShelf) -> Unit,
     modifier: Modifier = Modifier
@@ -56,13 +44,9 @@ fun ProfileScreen(
     ProfileContent(
         loggedIn = session.loggedIn,
         profile = session.profile,
-        loggingOut = session.loggingOut,
-        logOutFailed = session.logOutFailed,
         onBackClick = onBackClick,
-        onAccountClick = onAccountClick,
         onLogInClick = onLogInClick,
         onShelfClick = onShelfClick,
-        onLogOutClick = session::logOut,
         onRetry = session::refresh,
         modifier = modifier
     )
@@ -72,32 +56,22 @@ fun ProfileScreen(
 private fun ProfileContent(
     loggedIn: Result<Boolean>?,
     profile: UserProfile?,
-    loggingOut: Boolean,
-    logOutFailed: Boolean,
     onBackClick: () -> Unit,
-    onAccountClick: () -> Unit,
     onLogInClick: () -> Unit,
     onShelfClick: (BookShelf) -> Unit,
-    onLogOutClick: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) = AppScreen(
     title = stringResource(R.string.profile),
     onBackClick = onBackClick,
-    modifier = modifier,
-    topBarActions = {
-        if (!loggingOut && loggedIn?.getOrNull() == true) {
-            ProfileMenu(onAccountClick, onLogOutClick)
-        }
-    }
+    modifier = modifier
 ) {
     when {
-        loggingOut -> LoadingScreen(stringResource(R.string.logging_out))
         loggedIn == null -> LoadingScreen(stringResource(R.string.checking_login))
         else -> loggedIn.fold(
             onSuccess = {
                 if (it) {
-                    LoggedInProfile(profile, logOutFailed, onShelfClick)
+                    LoggedInProfile(profile, onShelfClick)
                 } else {
                     LoggedOutProfile(onLogInClick)
                 }
@@ -113,38 +87,7 @@ private fun ProfileContent(
 }
 
 @Composable
-private fun ProfileMenu(onAccountClick: () -> Unit, onLogOutClick: () -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.more_options))
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.account)) },
-                onClick = {
-                    expanded = false
-                    onAccountClick()
-                }
-            )
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.log_out)) },
-                onClick = {
-                    expanded = false
-                    onLogOutClick()
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun LoggedInProfile(
-    profile: UserProfile?,
-    logOutFailed: Boolean,
-    onShelfClick: (BookShelf) -> Unit
-) {
+private fun LoggedInProfile(profile: UserProfile?, onShelfClick: (BookShelf) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -191,12 +134,6 @@ private fun LoggedInProfile(
                 }
             }
         }
-        if (logOutFailed) {
-            Text(
-                text = stringResource(R.string.failed_to_log_out),
-                color = MaterialTheme.colorScheme.error
-            )
-        }
     }
 }
 
@@ -225,7 +162,7 @@ private fun LoggedOutProfile(onLogInClick: () -> Unit) {
 @Composable
 private fun LoggedOutProfilePreview() {
     BookPreviewTheme {
-        ProfileContent(Result.success(false), null, false, false, {}, {}, {}, {}, {}, {})
+        ProfileContent(Result.success(false), null, {}, {}, {}, {})
     }
 }
 
@@ -233,6 +170,6 @@ private fun LoggedOutProfilePreview() {
 @Composable
 private fun LoggedInProfilePreview() {
     BookPreviewTheme {
-        ProfileContent(Result.success(true), sampleUserProfile, false, true, {}, {}, {}, {}, {}, {})
+        ProfileContent(Result.success(true), sampleUserProfile, {}, {}, {}, {})
     }
 }
