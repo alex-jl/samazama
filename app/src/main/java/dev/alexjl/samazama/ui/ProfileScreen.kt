@@ -1,6 +1,5 @@
 package dev.alexjl.samazama.ui
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import coil3.compose.AsyncImage
 import dev.alexjl.samazama.R
 import dev.alexjl.samazama.data.UserProfile
 import dev.alexjl.samazama.data.sampleUserProfile
-import java.text.NumberFormat
 
 @Composable
 fun ProfileScreen(
@@ -127,10 +125,11 @@ private fun LoggedInProfile(
                 )
             }
             Row(modifier = Modifier.fillMaxWidth()) {
-                BookCount(R.string.count_read, profile.readCount, Modifier.weight(1f))
-                BookCount(R.string.count_reading, profile.readingCount, Modifier.weight(1f))
-                BookCount(R.string.count_owned, profile.stackedCount, Modifier.weight(1f))
-                BookCount(R.string.count_wish, profile.wishCount, Modifier.weight(1f))
+                val countModifier = Modifier.weight(1f)
+                BookCount(R.string.count_read, profile.readCount, countModifier, Alignment.CenterHorizontally)
+                BookCount(R.string.count_reading, profile.readingCount, countModifier, Alignment.CenterHorizontally)
+                BookCount(R.string.count_owned, profile.stackedCount, countModifier, Alignment.CenterHorizontally)
+                BookCount(R.string.count_wish, profile.wishCount, countModifier, Alignment.CenterHorizontally)
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -147,23 +146,6 @@ private fun LoggedInProfile(
                 color = MaterialTheme.colorScheme.error
             )
         }
-    }
-}
-
-@Composable
-private fun BookCount(@StringRes labelRes: Int, count: Int?, modifier: Modifier = Modifier) {
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = count?.let { NumberFormat.getIntegerInstance().format(it) } ?: "–",
-            style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
-            maxLines = 1
-        )
-        Text(
-            text = stringResource(labelRes),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.Center
-        )
     }
 }
 
