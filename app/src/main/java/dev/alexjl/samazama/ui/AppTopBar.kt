@@ -3,6 +3,7 @@ package dev.alexjl.samazama.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,6 +27,7 @@ fun AppTopBar(
     title: String,
     onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    actions: @Composable RowScope.() -> Unit = {},
     sections: @Composable ColumnScope.() -> Unit = {}
 ) {
     Surface(modifier = modifier, color = MaterialTheme.colorScheme.primaryContainer) {
@@ -45,7 +47,8 @@ fun AppTopBar(
                             )
                         }
                     }
-                }
+                },
+                actions = actions
             )
             sections()
         }
@@ -57,11 +60,17 @@ internal fun AppScreen(
     title: String,
     onBackClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    topBarActions: @Composable RowScope.() -> Unit = {},
     topBarSections: @Composable ColumnScope.() -> Unit = {},
     content: @Composable () -> Unit
 ) {
     Column(modifier = modifier.fillMaxSize()) {
-        AppTopBar(title = title, onBackClick = onBackClick, sections = topBarSections)
+        AppTopBar(
+            title = title,
+            onBackClick = onBackClick,
+            actions = topBarActions,
+            sections = topBarSections
+        )
         Box(modifier = Modifier.weight(1f)) {
             content()
         }

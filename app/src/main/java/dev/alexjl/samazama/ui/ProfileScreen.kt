@@ -2,6 +2,7 @@ package dev.alexjl.samazama.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,11 +13,20 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,7 +78,12 @@ private fun ProfileContent(
 ) = AppScreen(
     title = stringResource(R.string.profile),
     onBackClick = onBackClick,
-    modifier = modifier
+    modifier = modifier,
+    topBarActions = {
+        if (!loggingOut && loggedIn?.getOrNull() == true) {
+            ProfileMenu(onAccountClick, onLogOutClick)
+        }
+    }
 ) {
     when {
         loggingOut -> LoadingScreen(stringResource(R.string.logging_out))
@@ -76,7 +91,7 @@ private fun ProfileContent(
         else -> loggedIn.fold(
             onSuccess = {
                 if (it) {
-                    LoggedInProfile(profile, logOutFailed, onAccountClick, onLogOutClick)
+                    LoggedInProfile(profile, logOutFailed)
                 } else {
                     LoggedOutProfile(onLogInClick)
                 }
@@ -92,12 +107,34 @@ private fun ProfileContent(
 }
 
 @Composable
-private fun LoggedInProfile(
-    profile: UserProfile?,
-    logOutFailed: Boolean,
-    onAccountClick: () -> Unit,
-    onLogOutClick: () -> Unit
-) {
+private fun ProfileMenu(onAccountClick: () -> Unit, onLogOutClick: () -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.more_options))
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.account)) },
+                onClick = {
+                    expanded = false
+                    onAccountClick()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.log_out)) },
+                onClick = {
+                    expanded = false
+                    onLogOutClick()
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun LoggedInProfile(profile: UserProfile?, logOutFailed: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -130,14 +167,6 @@ private fun LoggedInProfile(
                 BookCount(R.string.count_reading, profile.readingCount, countModifier, Alignment.CenterHorizontally)
                 BookCount(R.string.count_owned, profile.stackedCount, countModifier, Alignment.CenterHorizontally)
                 BookCount(R.string.count_wish, profile.wishCount, countModifier, Alignment.CenterHorizontally)
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = onAccountClick) {
-                Text(stringResource(R.string.account))
-            }
-            OutlinedButton(onClick = onLogOutClick) {
-                Text(stringResource(R.string.log_out))
             }
         }
         if (logOutFailed) {
